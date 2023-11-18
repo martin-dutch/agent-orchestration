@@ -15,13 +15,15 @@ export interface ChatMessageProps {
   content?: string;
   isLoading?: boolean;
   src?: string;
+  agentName?: string
 }
 
 export const ChatMessage = ({
   role,
   content,
   isLoading,
-  src
+  src,
+  agentName
 }: ChatMessageProps) => {
   const { toast } = useToast();
   const { theme } = useTheme();
@@ -38,19 +40,21 @@ export const ChatMessage = ({
     })
   }
 
+  console.log('agentName', agentName)
+
   return (
     <div className={cn(
       "group flex items-start gap-x-3 py-4 w-full",
       role === "user" && "justify-end"
     )}>
-      {role !== "user" && src && <BotAvatar src={src} />}
-      <div className="rounded-md px-4 py-2 max-w-sm text-sm bg-primary/10">
+      {role !== "user" && src && <BotAvatar src={src} agentName={agentName ?? ''} />}
+      <div className="rounded-md px-4 py-2 max-w-sm text-sm bg-primary/10" >
         {isLoading 
           ? <BeatLoader color={theme === "light" ? "black" : "white"} size={5} /> 
           : content
         }
       </div>
-      {role === "user" && <UserAvatar />}
+      {role === "user" && <UserAvatar agentName={agentName ?? ''}/>}
       {role !== "user" && !isLoading && (
         <Button 
           onClick={onCopy} 

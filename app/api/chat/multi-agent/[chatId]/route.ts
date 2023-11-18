@@ -29,6 +29,44 @@ const ASSISTANT_MODEL = "gpt-4-1106-preview";
 const ASSISTANT_DESCRIPTION =
   "A friendly assistant to help you with your queries.";
 
+  export async function GET(
+    request: Request,
+    { params }: { params: { chatId: string } }
+  ) {
+    const user = await currentUser();
+    console.log('user', user)
+    const chatId = params.chatId;
+    console.log('chatId', chatId)
+
+    if (!user || !user.firstName || !user.id) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+  
+    const companion = await prismadb.companion.findUnique({
+      where: {
+        id: params.chatId
+      },
+      include: {
+        messages: {
+          orderBy: {
+            createdAt: "asc"
+          },
+          where: {
+            userId: user.id,
+          },
+        },
+        _count: {
+          select: {
+            messages: true,
+          }
+        }
+      }
+    });
+  
+
+    return new NextResponse(JSON.stringify(companion))
+  }
+
 
 export async function POST(
   request: Request,
@@ -151,7 +189,7 @@ export async function POST(
 
 
         aibitat.onMessage(async (chat) => {
-          await prismadb.companion.update({
+          {chat.from !== 'client' && await prismadb.companion.update({
             where: {
               id: params.chatId
             },
@@ -165,16 +203,8 @@ export async function POST(
                 },
               },
             }
-          });
+          });}
         })
-
-    
-        // aibitat.onTerminate(() => {
-        //     console.log('terminate')
-        //     s.push(null);
-        //     console.log('terminate 2')
-        // })
-
         
     await aibitat.start({
         from: 'client',
@@ -182,7 +212,7 @@ export async function POST(
         content: prompt,
     })
 
-    console.log(aibitat.chats)
+    // console.log(aibitat.chats)
     
 
     aibitat.chats.forEach((chat) => {

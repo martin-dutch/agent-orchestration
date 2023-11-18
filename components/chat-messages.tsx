@@ -40,14 +40,16 @@ export const ChatMessages = ({
         isLoading={fakeLoading}
         src={companion.src}
         role="system"
+        agentName={'system'}
         content={`Hello, I am ${companion.name}, ${companion.description}`}
       />
-      {messages.map((message) => (
+      {messages.map((message, index) => (
         <ChatMessage
-          key={message.content}
+          key={index}
           src={companion.src}
           content={message.content}
           role={message.role}
+          agentName={message.agentName}
         />
       ))}
       {isLoading && (
