@@ -700,6 +700,7 @@ ${this.getHistory({ to: route.to })
   ): Promise<string> {
     // get the chat completion
     const completion = await provider.complete(messages, functions);
+    this.emitter.emit("function", undefined, this);
 
     if (completion.functionCall) {
       const { name, arguments: args } = completion.functionCall;
@@ -722,6 +723,7 @@ ${this.getHistory({ to: route.to })
         );
       }
 
+      console.log('EMITTING FUNCTION', fn.name)
       this.emitter.emit("function", fn.name, this);
       // Execute the function and return the result to the provider
       const result = await fn.handler(args);

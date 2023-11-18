@@ -36,7 +36,6 @@ export const ChatClient = ({
       try {
         const response = await fetch(`/api/chat/multi-agent/${companion.id}`);
         const result = await response.json();
-        console.log('result',result)
         setCompanionChat(result as Companion & { messages: Message[]});
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -48,7 +47,7 @@ export const ChatClient = ({
     return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, []);
 
-  console.log('companionChate',companionChate)
+  console.log('function', companionChate?.functionCalling)
   
   const {
     completion,
@@ -85,7 +84,6 @@ export const ChatClient = ({
   }
 
 
-console.log(companionChate?.messages)
   return (
     <div className="flex flex-col h-full p-4 space-y-2">
       <ChatHeader companion={companion} />

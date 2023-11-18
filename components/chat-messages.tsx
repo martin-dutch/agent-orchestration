@@ -34,6 +34,7 @@ export const ChatMessages = ({
     scrollRef?.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
 
+
   return (
     <div className="flex-1 overflow-y-auto pr-4">
       <ChatMessage
@@ -45,6 +46,7 @@ export const ChatMessages = ({
       />
       {messages.map((message, index) => (
         <ChatMessage
+          functionCalling={messages.length -1  === index  ? companion.functionCalling : ''}
           key={index}
           src={companion.src}
           content={message.content}

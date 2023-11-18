@@ -10,7 +10,6 @@ export const BotAvatar = ({
   src,
   agentName
 }: BotAvatarProps) => {
-  console.log('agentName PRINT', agentName)
   return (
 <Card className="w-48 p-4 bg-white dark:bg-gray-800 rounded shadow hover:shadow-lg transition-shadow duration-200">
 <div className="flex items-center space-x-4">

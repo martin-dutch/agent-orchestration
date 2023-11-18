@@ -15,7 +15,8 @@ export interface ChatMessageProps {
   content?: string;
   isLoading?: boolean;
   src?: string;
-  agentName?: string
+  agentName?: string | null
+  functionCalling?: string | null
 }
 
 export const ChatMessage = ({
@@ -23,7 +24,8 @@ export const ChatMessage = ({
   content,
   isLoading,
   src,
-  agentName
+  agentName,
+  functionCalling
 }: ChatMessageProps) => {
   const { toast } = useToast();
   const { theme } = useTheme();
@@ -40,8 +42,7 @@ export const ChatMessage = ({
     })
   }
 
-  console.log('agentName', agentName)
-
+  console.log('IFDSOSDNV',functionCalling)
   return (
     <div className={cn(
       "group flex items-start gap-x-3 py-4 w-full",
@@ -52,6 +53,14 @@ export const ChatMessage = ({
         {isLoading 
           ? <BeatLoader color={theme === "light" ? "black" : "white"} size={5} /> 
           : content
+        }
+        {
+          functionCalling && (
+            <div className="flex">
+            <BeatLoader color={theme === "light" ? "black" : "white"} size={5} /> 
+            <h4>{functionCalling}</h4>
+            </div>
+          )
         }
       </div>
       {role === "user" && <UserAvatar agentName={agentName ?? ''}/>}
