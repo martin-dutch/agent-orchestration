@@ -70,6 +70,7 @@ enum Role {
 model Message {
   id        String   @id @default(uuid())
   role      Role
+  agentName String?
   content   String   @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

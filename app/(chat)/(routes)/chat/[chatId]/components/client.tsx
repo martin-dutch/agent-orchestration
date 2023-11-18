@@ -35,17 +35,21 @@ export const ChatClient = ({
   } = useCompletion({
     api: `/api/chat/multi-agent/${companion.id}`,
     onFinish(_prompt, completion) {
-      const systemMessage: ChatMessageProps = {
-        role: "system",
-        content: completion
-      };
+      // const systemMessage: ChatMessageProps = {
+      //   role: "system",
+      //   content: completion
+      // };
 
-      setMessages((current) => [...current, systemMessage]);
-      setInput("");
+      // setMessages((current) => [...current, systemMessage]);
+      // setInput("");
 
-      router.refresh();
+      // router.refresh();
     },
   });
+
+
+  const messagesLocal =
+
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     const userMessage: ChatMessageProps = {

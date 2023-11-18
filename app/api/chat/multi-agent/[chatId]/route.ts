@@ -149,6 +149,25 @@ export async function POST(
         //     // }
         // })
 
+
+        aibitat.onMessage(async (chat) => {
+          await prismadb.companion.update({
+            where: {
+              id: params.chatId
+            },
+            data: {
+              messages: {
+                create: {
+                  content: chat.content ?? '',
+                  role: "system",
+                  agentName: chat.from,
+                  userId: user.id,
+                },
+              },
+            }
+          });
+        })
+
     
         // aibitat.onTerminate(() => {
         //     console.log('terminate')
