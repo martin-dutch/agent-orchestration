@@ -39,6 +39,12 @@ export const Sidebar = ({
       pro: true,
     },
     {
+      icon: Plus,
+      href: '/agent/new',
+      label: "Create Agent",
+      pro: true,
+    },
+    {
       icon: Settings,
       href: '/settings',
       label: "Settings",
