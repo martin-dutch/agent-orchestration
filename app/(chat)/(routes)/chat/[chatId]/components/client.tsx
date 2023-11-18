@@ -48,7 +48,7 @@ export const ChatClient = ({
   });
 
 
-  const messagesLocal =
+  const messagesLocal = ''
 
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
