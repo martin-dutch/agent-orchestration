@@ -26,13 +26,14 @@ export const ChatClient = ({
   const [messages, setMessages] = useState<ChatMessageProps[]>(companion.messages);
   
   const {
+    completion,
     input,
     isLoading,
     handleInputChange,
     handleSubmit,
     setInput,
   } = useCompletion({
-    api: `/api/chat/${companion.id}`,
+    api: `/api/chat/multi-agent/${companion.id}`,
     onFinish(_prompt, completion) {
       const systemMessage: ChatMessageProps = {
         role: "system",
@@ -65,6 +66,9 @@ export const ChatClient = ({
         isLoading={isLoading}
         messages={messages}
       />
+      {
+        completion
+      }
       <ChatForm 
         isLoading={isLoading} 
         input={input} 

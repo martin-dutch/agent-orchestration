@@ -67,7 +67,7 @@ export async function scrape(url: string) {
   }
 
   const data_json = JSON.stringify(data)
-
+console.log(`https://chrome.browserless.io/content?token=${process.env.BROWSERLESS_TOKEN}`)
   const response = await fetch(
     `https://chrome.browserless.io/content?token=${process.env.BROWSERLESS_TOKEN}`,
     {
@@ -86,6 +86,7 @@ export async function scrape(url: string) {
   const html = await response.text()
   const text = NodeHtmlMarkdown.translate(html)
 
+  console.log('🔥 ~ text', text)
   if (text.length <= 8000) {
     return text
   }
@@ -167,6 +168,8 @@ export function experimental_webBrowsing({}: {} = {}) {
         },
         async handler({query, url}) {
           console.log('🔥 ~ Browsing on the internet')
+          console.log('qyery', query)
+          console.log('url', url)
           if (url) {
             return await scrape(url)
           }

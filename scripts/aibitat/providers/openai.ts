@@ -78,25 +78,12 @@ export class OpenAIProvider extends Provider<OpenAI> {
     functions?: AIbitat.FunctionDefinition[],
   ): Promise<Provider.Completion> {
     try {
-      // const response = await this.client.chat.completions.create({
-      //   model: this.model,
-      //   // stream: true,
-      //   messages,
-      //   functions,
-      // })
-      await this.client.beta.threads.messages.create(threadId, {
-        role: "user",
-        content:  `
-            ONLY generate plain sentences without prefix of who is speaking. DO NOT use ${companion.name}: prefix. 
-    
-            ${companion.instructions}
-    
-            Below are relevant details about ${companion.name}'s past and the conversation you are in.
-            ${relevantHistory}
-    
-    
-            ${recentChatHistory}\n${companion.name}:`,
-      });
+      const response = await this.client.chat.completions.create({
+        model: this.model,
+        // stream: true,
+        messages,
+        functions,
+      })
 
       // Right now, we only support one completion,
       // so we just take the first one in the list

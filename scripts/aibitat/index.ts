@@ -331,6 +331,17 @@ export class AIbitat<T extends Provider> {
   }
 
   /**
+   * Triggered when a function is executed
+   *
+   * @param listener
+   * @returns
+   */
+  public onFunction(listener: (funct: string) => void) {
+    this.emitter.on('function', listener)
+    return this
+  }
+
+  /**
    * Register a new successful message in the chat history.
    * This will trigger the `onMessage` event.
    *
@@ -709,6 +720,7 @@ ${this.getHistory({to: route.to})
         )
       }
 
+      this.emitter.emit('function', fn.name, this)
       // Execute the function and return the result to the provider
       const result = await fn.handler(args)
       return await this.handleExecution(

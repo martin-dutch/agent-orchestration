@@ -38,6 +38,25 @@ model Companion {
   @@fulltext([name])
 }
 
+model Agent {
+  id        String     @id @default(uuid())
+  name      String
+  src       String
+  role      String
+  functions Function[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Function {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Agent     Agent?   @relation(fields: [agentId], references: [id])
+  agentId   String?
+}
+
 enum Role {
   user
   system

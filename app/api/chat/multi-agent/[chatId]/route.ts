@@ -9,6 +9,7 @@ import OpenAI from 'openai'
 import { MemoryManager } from "@/lib/memory";
 import prismadb from "@/lib/prismadb";
 import AIbitat from "@/scripts/aibitat";
+import { experimental_webBrowsing } from "@/scripts/aibitat/plugins";
 
 
 
@@ -110,15 +111,18 @@ export async function POST(
     }
     
     const aibitat = new AIbitat()
+        .use(experimental_webBrowsing())
         .agent('client', {
             interrupt: 'ALWAYS',
             role: 'You are a human assistant. Reply "TERMINATE" when there is a correct answer or there`s no answer to the question.',
+            functions: ['web-browsing'],
         })
         .agent('mathematician', {
-            role: `You are a Mathematician and only solve math problems from @client`,
+            role: `You are a researcher and look at the web or internet for answers`,
+            functions: ['web-browsing'],
         })
         .agent('reviewer', {
-            role: `You are a Peer-Reviewer and you do not solve math problems. 
+            role: `You are a Peer-Reviewer and you do not answer questions. 
             Check the result from @mathematician and then confirm. Just confirm, no talk.`,
         })
         .channel('management', ['mathematician', 'reviewer', 'client'])
@@ -128,6 +132,9 @@ export async function POST(
         let s = new Readable();
         // s.push(response);
         // s.push(null);
+
+        aibitat.onInterrupt((chat) => {
+        })
 
         // aibitat.onMessage((chat) => {
         //     console.log('init chat')
@@ -153,7 +160,7 @@ export async function POST(
     await aibitat.start({
         from: 'client',
         to: 'management',
-        content: 'How much is 2 + 2?',
+        content: prompt,
     })
 
     console.log(aibitat.chats)
