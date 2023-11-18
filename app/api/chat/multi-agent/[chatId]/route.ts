@@ -9,7 +9,7 @@ import OpenAI from 'openai'
 import { MemoryManager } from "@/lib/memory";
 import prismadb from "@/lib/prismadb";
 import AIbitat from "@/scripts/aibitat";
-import { experimental_webBrowsing } from "@/scripts/aibitat/plugins";
+import { agent_creation, experimental_webBrowsing } from "@/scripts/aibitat/plugins";
 
 
 
@@ -111,21 +111,16 @@ export async function POST(
     }
     
     const aibitat = new AIbitat()
-        .use(experimental_webBrowsing())
+        .use(agent_creation())
         .agent('client', {
             interrupt: 'ALWAYS',
             role: 'You are a human assistant. Reply "TERMINATE" when there is a correct answer or there`s no answer to the question.',
-            functions: ['web-browsing'],
         })
-        .agent('mathematician', {
-            role: `You are a researcher and look at the web or internet for answers`,
-            functions: ['web-browsing'],
+        .agent('agent-creation', {
+            role: 'You are a human assistant. Reply "TERMINATE" when there is a correct answer or there`s no answer to the question.',
+            functions: ['create-agent'],
         })
-        .agent('reviewer', {
-            role: `You are a Peer-Reviewer and you do not answer questions. 
-            Check the result from @mathematician and then confirm. Just confirm, no talk.`,
-        })
-        .channel('management', ['mathematician', 'reviewer', 'client'])
+        .channel('management', ['client', 'agent-creation'])
 
         // aibitat.onMessage(console.log)
         var Readable = require("stream").Readable;

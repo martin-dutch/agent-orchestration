@@ -1,10 +1,10 @@
-import {loadSummarizationChain} from 'langchain/chains'
-import {ChatOpenAI} from 'langchain/chat_models/openai'
-import {PromptTemplate} from 'langchain/prompts'
-import {RecursiveCharacterTextSplitter} from 'langchain/text_splitter'
-import {NodeHtmlMarkdown} from 'node-html-markdown'
+import { loadSummarizationChain } from 'langchain/chains'
+import { ChatOpenAI } from 'langchain/chat_models/openai'
+import { PromptTemplate } from 'langchain/prompts'
+import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter'
+import { NodeHtmlMarkdown } from 'node-html-markdown'
 
-import type {AIbitat} from '..'
+import type { AIbitat } from '..'
 
 /**
  * Use serper.dev to search on Google.
@@ -67,7 +67,7 @@ export async function scrape(url: string) {
   }
 
   const data_json = JSON.stringify(data)
-console.log(`https://chrome.browserless.io/content?token=${process.env.BROWSERLESS_TOKEN}`)
+  console.log(`https://chrome.browserless.io/content?token=${process.env.BROWSERLESS_TOKEN}`)
   const response = await fetch(
     `https://chrome.browserless.io/content?token=${process.env.BROWSERLESS_TOKEN}`,
     {
@@ -139,7 +139,7 @@ export async function summarize(content: string): Promise<string> {
   return res.text
 }
 
-export function experimental_webBrowsing({}: {} = {}) {
+export function experimental_webBrowsing({ }: {} = {}) {
   return {
     name: 'web-browsing-plugin',
     setup(aibitat) {
@@ -163,10 +163,10 @@ export function experimental_webBrowsing({}: {} = {}) {
               description: 'A web URL.',
             },
           },
-          oneOf: [{required: ['query']}, {required: ['url']}],
+          oneOf: [{ required: ['query'] }, { required: ['url'] }],
           additionalProperties: false,
         },
-        async handler({query, url}) {
+        async handler({ query, url }) {
           console.log('🔥 ~ Browsing on the internet')
           console.log('qyery', query)
           console.log('url', url)
@@ -175,6 +175,43 @@ export function experimental_webBrowsing({}: {} = {}) {
           }
 
           return await search(query)
+        },
+      })
+    },
+  } as AIbitat.Plugin<any>
+}
+
+export function agent_creation({ }: {} = {}) {
+  return {
+    name: 'agent-creation-plugin',
+    setup(aibitat) {
+      aibitat.function({
+        name: 'create-agent',
+        description:
+          'Creates a agent based on the url provided.',
+        parameters: {
+          $schema: 'http://json-schema.org/draft-07/schema#',
+          type: 'object',
+          properties: {
+            url: {
+              type: 'string',
+              format: 'uri',
+              description: 'A web URL.',
+            },
+          },
+          required: ['url'],
+          additionalProperties: false,
+        },
+        async handler({ url }) {
+          console.log('🔥 ~ Creating the agent based on the content from the url.')
+          const name ='agent-' + new URL(url).hostname;
+          const content = await scrape(url);
+          // name is the root domain of the url with agent- prefix
+          aibitat.agent(name, {
+            role: 'You are a human assistant. Here is your specialist data:' + content + '.',
+          });
+          aibitat.addToChannel('management', [name]);
+          return "Agent " + name + " has joined the chat."
         },
       })
     },
