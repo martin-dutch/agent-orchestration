@@ -216,6 +216,15 @@ export class AIbitat<T extends Provider> {
     return this;
   }
 
+  public addToChannel(name: string, members: string[]) {
+    const channel = this.channels.get(name)
+    if (!channel) {
+      throw new Error(`Channel "${name}" not found`)
+    }
+    channel.members.push(...members)
+    return this
+  }
+
   /**
    * Get the specific agent configuration.
    *

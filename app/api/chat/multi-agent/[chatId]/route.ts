@@ -27,7 +27,7 @@ const aibitat = new AIbitat()
     role: `
     You are a human assistant. 
     Reply "TERMINATE" when there is a correct answer or there's no answer to the question.`,
-    functions: ["list-running-agents"],
+    functions: ["list-running-agents", "create-agent-for-url"],
   })
   .channel("broadcast", ["client", "agents"]);
 
@@ -36,9 +36,7 @@ export async function GET(
   { params }: { params: { chatId: string } }
 ) {
   const user = await currentUser();
-  console.log('user', user)
   const chatId = params.chatId;
-  console.log('chatId', chatId)
 
   if (!user || !user.firstName || !user.id) {
     return new NextResponse("Unauthorized", { status: 401 });
@@ -46,12 +44,12 @@ export async function GET(
 
   const companion = await prismadb.companion.findUnique({
     where: {
-      id: params.chatId
+      id: params.chatId,
     },
     include: {
       messages: {
         orderBy: {
-          createdAt: "asc"
+          createdAt: "asc",
         },
         where: {
           userId: user.id,
@@ -60,13 +58,44 @@ export async function GET(
       _count: {
         select: {
           messages: true,
-        }
-      }
-    }
+        },
+      },
+    },
   });
 
+  return new NextResponse(JSON.stringify(companion));
+}
 
-  return new NextResponse(JSON.stringify(companion))
+export async function PUT(
+  request: Request,
+  { params }: { params: { chatId: string } }
+) {
+  const user = await currentUser();
+  const chatId = params.chatId;
+
+  if (!user || !user.id) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  aibitat.onInterrupt((chat) => {});
+
+  aibitat.onMessage(async (chat) => {
+    await prismadb.companion.update({
+      where: {
+        id: params.chatId,
+      },
+      data: {
+        messages: {
+          create: {
+            content: chat.content ?? "",
+            role: "system",
+            agentName: chat.from,
+            userId: user.id,
+          },
+        },
+      },
+    });
+  });
 }
 
 export async function POST(
@@ -75,13 +104,9 @@ export async function POST(
 ) {
   try {
     const { prompt } = await request.json();
-    console.debug("prompt", prompt);
     const user = await currentUser();
-    console.debug("user", user);
-    const chatId = params.chatId;
-    console.debug("chatId", chatId);
 
-    if (!user || !user.firstName || !user.id) {
+    if (!user || !user.id) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
@@ -123,67 +148,11 @@ export async function POST(
     }
     await memoryManager.writeToHistory("User: " + prompt + "\n", companionKey);
 
-    // Query Pinecone
-    const recentChatHistory =
-      await memoryManager.readLatestHistory(companionKey);
-
-    // Right now the preamble is included in the similarity search, but that
-    // shouldn't be an issue
-
-    console.debug("pinecone search starting", recentChatHistory);
-    console.debug("companion_file_name", companion_file_name);
-    const similarDocs = await memoryManager.vectorSearch(
-      recentChatHistory,
-      companion_file_name
-    );
-    console.debug("pinecone search ending", similarDocs);
-
-    let relevantHistory = "";
-    if (!!similarDocs && similarDocs.length !== 0) {
-      relevantHistory = similarDocs.map((doc) => doc.pageContent).join("\n");
-    }
-
-    // aibitat.onMessage(console.log)
-    var Readable = require("stream").Readable;
-    let s = new Readable();
-    // s.push(response);
-    // s.push(null);
-
-    aibitat.onInterrupt((chat) => {});
-
-    aibitat.onMessage(async (chat) => {
-      await prismadb.companion.update({
-        where: {
-          id: params.chatId
-        },
-        data: {
-          messages: {
-            create: {
-              content: chat.content ?? '',
-              role: "system",
-              agentName: chat.from,
-              userId: user.id,
-            },
-          },
-        }
-      });
-    })
-
     await aibitat.start({
       from: "client",
       to: "broadcast",
       content: prompt,
     });
-
-    // console.log(aibitat.chats)
-    
-
-    aibitat.chats.forEach((chat) => {
-      s.push(chat.content);
-    });
-    s.push(null);
-
-    return new StreamingTextResponse(s);
   } catch (error) {
     console.log(error);
     return new NextResponse("Internal Error", { status: 500 });
