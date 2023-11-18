@@ -4,15 +4,12 @@ import { auth, currentUser } from "@clerk/nextjs";
 import { Replicate } from "langchain/llms/replicate";
 import { CallbackManager } from "langchain/callbacks";
 import { NextResponse } from "next/server";
-import OpenAI from 'openai'
-
+import OpenAI from "openai";
 import { MemoryManager } from "@/lib/memory";
 import prismadb from "@/lib/prismadb";
 import AIbitat from "@/scripts/aibitat";
 import { experimental_webBrowsing } from "@/scripts/aibitat/plugins";
-
-
-
+import { agents } from "@/scripts/aibitat/plugins/agents";
 
 dotenv.config({ path: `.env` });
 
@@ -29,33 +26,26 @@ const ASSISTANT_MODEL = "gpt-4-1106-preview";
 const ASSISTANT_DESCRIPTION =
   "A friendly assistant to help you with your queries.";
 
-
 export async function POST(
   request: Request,
   { params }: { params: { chatId: string } }
 ) {
   try {
     const { prompt } = await request.json();
-    console.log('prompt', prompt)
+    console.debug("prompt", prompt);
     const user = await currentUser();
-    console.log('user', user)
+    console.debug("user", user);
     const chatId = params.chatId;
-    console.log('chatId', chatId)
+    console.debug("chatId", chatId);
 
     if (!user || !user.firstName || !user.id) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const identifier = request.url + "-" + user.id;
-    // const { success } = await rateLimit(identifier);
-
-    // if (!success) {
-    //   return new NextResponse("Rate limit exceeded", { status: 429 });
-    // }
-
+    // TODO: check if we actually need this now
     const companion = await prismadb.companion.update({
       where: {
-        id: params.chatId
+        id: params.chatId,
       },
       data: {
         messages: {
@@ -65,7 +55,7 @@ export async function POST(
             userId: user.id,
           },
         },
-      }
+      },
     });
 
     const threadId = companion.threadId;
@@ -91,82 +81,80 @@ export async function POST(
     await memoryManager.writeToHistory("User: " + prompt + "\n", companionKey);
 
     // Query Pinecone
-
-    const recentChatHistory = await memoryManager.readLatestHistory(companionKey);
+    const recentChatHistory =
+      await memoryManager.readLatestHistory(companionKey);
 
     // Right now the preamble is included in the similarity search, but that
     // shouldn't be an issue
 
-    console.log('pinecone search starting', recentChatHistory)
-    console.log('companion_file_name',companion_file_name)
+    console.debug("pinecone search starting", recentChatHistory);
+    console.debug("companion_file_name", companion_file_name);
     const similarDocs = await memoryManager.vectorSearch(
       recentChatHistory,
       companion_file_name
     );
-    console.log('pinecone search ending', similarDocs)
+    console.debug("pinecone search ending", similarDocs);
 
     let relevantHistory = "";
     if (!!similarDocs && similarDocs.length !== 0) {
       relevantHistory = similarDocs.map((doc) => doc.pageContent).join("\n");
     }
-    
+
     const aibitat = new AIbitat()
-        .use(experimental_webBrowsing())
-        .agent('client', {
-            interrupt: 'ALWAYS',
-            role: 'You are a human assistant. Reply "TERMINATE" when there is a correct answer or there`s no answer to the question.',
-            functions: ['web-browsing'],
-        })
-        .agent('mathematician', {
-            role: `You are a researcher and look at the web or internet for answers`,
-            functions: ['web-browsing'],
-        })
-        .agent('reviewer', {
-            role: `You are a Peer-Reviewer and you do not answer questions. 
-            Check the result from @mathematician and then confirm. Just confirm, no talk.`,
-        })
-        .channel('management', ['mathematician', 'reviewer', 'client'])
+      .use(agents({ dbClient: prismadb }))
+      .agent("client", {
+        interrupt: "ALWAYS",
+        role: `
+        You are a human assistant. 
+        Reply "TERMINATE" when there is a correct answer or there's no answer to the question.`,
+      })
+      .agent("agents", {
+        role: `
+        You are a human assistant. 
+        Reply "TERMINATE" when there is a correct answer or there's no answer to the question.`,
+        functions: ["list-running-agents"],
+      })
+      .channel("management", ["client", "agents"]);
 
-        // aibitat.onMessage(console.log)
-        var Readable = require("stream").Readable;
-        let s = new Readable();
-        // s.push(response);
-        // s.push(null);
+    // aibitat.onMessage(console.log)
+    var Readable = require("stream").Readable;
+    let s = new Readable();
+    // s.push(response);
+    // s.push(null);
 
-        aibitat.onInterrupt((chat) => {
-        })
+    aibitat.onInterrupt((chat) => {});
 
-        // aibitat.onMessage((chat) => {
-        //     console.log('init chat')
-        //     s.push(chat.content);
-        //     console.log('chat', chat)
-        //     // state: 'success' | 'interrupt' | 'error'
-        //     // if(chat.state === 'interrupted') {
-        //     //     inst.interrupt()
-        //     // }
-        //     // if (chat.content === 'TERMINATE') {
-        //     //     inst.interrupt()
-        //     // }
-        // })
+    // aibitat.onMessage((chat) => {
+    //     console.log('init chat')
+    //     s.push(chat.content);
+    //     console.log('chat', chat)
+    //     // state: 'success' | 'interrupt' | 'error'
+    //     // if(chat.state === 'interrupted') {
+    //     //     inst.interrupt()
+    //     // }
+    //     // if (chat.content === 'TERMINATE') {
+    //     //     inst.interrupt()
+    //     // }
+    // })
 
 
-        aibitat.onMessage(async (chat) => {
-          await prismadb.companion.update({
-            where: {
-              id: params.chatId
+    aibitat.onMessage(async (chat) => {
+      await prismadb.companion.update({
+        where: {
+          id: params.chatId
+        },
+        data: {
+          messages: {
+            create: {
+              content: chat.content ?? '',
+              role: "system",
+              agentName: chat.from,
+              userId: user.id,
             },
-            data: {
-              messages: {
-                create: {
-                  content: chat.content ?? '',
-                  role: "system",
-                  agentName: chat.from,
-                  userId: user.id,
-                },
-              },
-            }
-          });
-        })
+          },
+        }
+      });
+    })
 
     
         // aibitat.onTerminate(() => {
@@ -175,26 +163,22 @@ export async function POST(
         //     console.log('terminate 2')
         // })
 
-        
     await aibitat.start({
-        from: 'client',
-        to: 'management',
-        content: prompt,
-    })
+      from: "client",
+      to: "management",
+      content: prompt,
+    });
 
-    console.log(aibitat.chats)
-    
+    console.log(aibitat.chats);
 
     aibitat.chats.forEach((chat) => {
-        s.push(chat.content);
-    })
+      s.push(chat.content);
+    });
     s.push(null);
-
-
 
     return new StreamingTextResponse(s);
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return new NextResponse("Internal Error", { status: 500 });
   }
-};
+}
