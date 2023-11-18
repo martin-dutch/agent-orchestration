@@ -1,109 +1,108 @@
-import {EventEmitter} from 'events'
+import { EventEmitter } from "events";
+import { APIError } from "./error";
+import * as Function from "./function";
+import * as Providers from "./providers";
 
-import {APIError} from './error.ts'
-import * as Function from './function.ts'
-import * as Providers from './providers'
-
-export * from './providers'
+export * from "./providers";
 
 /**
  * Available providers
  */
-type Provider = 'openai' | 'anthropic' | Providers.Provider<unknown>
+type Provider = "openai" | "anthropic" | Providers.Provider<unknown>;
 
 /**
  * The provider config to use for the AI.
  */
-export type ProviderConfig<T extends Provider = 'openai'> = T extends 'openai'
+export type ProviderConfig<T extends Provider = "openai"> = T extends "openai"
   ? {
       /** The OpenAI API provider */
-      provider?: 'openai'
+      provider?: "openai";
       /** The model to use with the OpenAI */
-      model?: Providers.OpenAIProviderConfig['model']
+      model?: Providers.OpenAIProviderConfig["model"];
     }
-  : T extends 'anthropic'
+  : T extends "anthropic"
   ? {
       /** The custom AI provider */
-      provider: 'anthropic'
+      provider: "anthropic";
       /**
        * The model to use with the Anthropic API.
        * @default 'claude-2'
        */
-      model?: Providers.AnthropicProviderConfig['model']
+      model?: Providers.AnthropicProviderConfig["model"];
     }
   : {
       /** The custom AI provider */
-      provider: Providers.Provider<unknown>
-    }
+      provider: Providers.Provider<unknown>;
+    };
 
 /**
  * Base config for AIbitat agents.
  */
-export type AgentConfig<T extends Provider = 'openai'> = ProviderConfig<T> & {
+export type AgentConfig<T extends Provider = "openai"> = ProviderConfig<T> & {
   /** The role this agent will play in the conversation */
-  role?: string
+  role?: string;
 
   /**
    * When the chat should be interrupted for feedbacks.
    * @default 'NEVER'
    */
-  interrupt?: 'NEVER' | 'ALWAYS'
+  interrupt?: "NEVER" | "ALWAYS";
 
   /**
    * The functions that this agent can call.
    * @default []
    */
-  functions?: string[]
-}
+  functions?: string[];
+};
 
 /**
  * The channel configuration for the AIbitat.
  */
-export type ChannelConfig<T extends Provider = 'openai'> = ProviderConfig<T> & {
+export type ChannelConfig<T extends Provider = "openai"> = ProviderConfig<T> & {
   /** The role this agent will play in the conversation */
-  role?: string
+  role?: string;
 
   /**
    * The maximum number of rounds an agent can chat with the channel
    * @default 10
    */
-  maxRounds?: number
-}
+  maxRounds?: number;
+};
 
 /**
  * A route between two agents or channels.
  */
 type Route = {
-  from: string
-  to: string
-}
+  from: string;
+  to: string;
+};
 
 /**
  * A chat message.
  */
 type Message = Prettify<
   Route & {
-    content: string
+    content: string;
   }
->
+>;
 
 // Prettify a type
 type Prettify<T> = {
-  [K in keyof T]: T[K]
-} & {}
+  [K in keyof T]: T[K];
+} & {};
 
 /**
  * A chat message that is saved in the history.
  */
-type Chat = Omit<Message, 'content'> & {
-  content?: string
-  state: 'success' | 'interrupt' | 'error'
-}
+type Chat = Omit<Message, "content"> & {
+  content?: string;
+  state: "success" | "interrupt" | "error";
+};
 
 /**
  * Chat history.
  */
-type History = Array<Chat>
+type History = Array<Chat>;
 
 /**
  * AIbitat props.
@@ -113,20 +112,20 @@ export type AIbitatProps<T extends Provider> = ProviderConfig<T> & {
    * Chat history between all agents.
    * @default []
    */
-  chats?: History
+  chats?: History;
 
   /**
    * The maximum number of rounds to engage in a chat
    * @default 100
    */
-  maxRounds?: number
+  maxRounds?: number;
 
   /**
    * When the chat should be interrupted for feedbacks
    * @default 'NEVER'
    */
-  interrupt?: 'NEVER' | 'ALWAYS'
-}
+  interrupt?: "NEVER" | "ALWAYS";
+};
 
 /**
  * AIbitat is a class that manages the conversation between agents.
@@ -135,48 +134,51 @@ export type AIbitatProps<T extends Provider> = ProviderConfig<T> & {
  * Guiding the chat through a graph of agents.
  */
 export class AIbitat<T extends Provider> {
-  private emitter = new EventEmitter()
+  private emitter = new EventEmitter();
 
-  private defaultProvider: ProviderConfig<any>
-  private defaultInterrupt
-  private maxRounds
-  private _chats
+  private defaultProvider: ProviderConfig<any>;
+  private defaultInterrupt;
+  private maxRounds;
+  private _chats;
 
-  private agents = new Map<string, AgentConfig<any>>()
-  private channels = new Map<string, {members: string[]} & ChannelConfig<any>>()
-  private functions = new Map<string, AIbitat.FunctionConfig>()
+  public agents = new Map<string, AgentConfig<any>>();
+  public channels = new Map<
+    string,
+    { members: string[] } & ChannelConfig<any>
+  >();
+  public functions = new Map<string, AIbitat.FunctionConfig>();
 
   constructor(props: AIbitatProps<T> = {} as AIbitatProps<T>) {
     const {
       chats = [],
-      interrupt = 'NEVER',
+      interrupt = "NEVER",
       maxRounds = 100,
-      provider = 'openai',
+      provider = "openai",
       ...rest
-    } = props
-    this._chats = chats
-    this.defaultInterrupt = interrupt
-    this.maxRounds = maxRounds
+    } = props;
+    this._chats = chats;
+    this.defaultInterrupt = interrupt;
+    this.maxRounds = maxRounds;
 
     this.defaultProvider = {
       provider,
       ...rest,
-    }
+    };
   }
 
   /**
    * Get the chat history between agents and channels.
    */
   get chats() {
-    return this._chats
+    return this._chats;
   }
 
   /**
    * Install a plugin.
    */
   use<T extends Provider>(plugin: AIbitat.Plugin<T>) {
-    plugin.setup(this)
-    return this
+    plugin.setup(this);
+    return this;
   }
 
   /**
@@ -188,10 +190,10 @@ export class AIbitat<T extends Provider> {
    */
   public agent<T extends Provider>(
     name: string,
-    config: AgentConfig<T> = {} as AgentConfig<T>,
+    config: AgentConfig<T> = {} as AgentConfig<T>
   ) {
-    this.agents.set(name, config)
-    return this
+    this.agents.set(name, config);
+    return this;
   }
 
   /**
@@ -205,13 +207,13 @@ export class AIbitat<T extends Provider> {
   public channel<T extends Provider>(
     name: string,
     members: string[],
-    config: ChannelConfig<T> = {} as ChannelConfig<T>,
+    config: ChannelConfig<T> = {} as ChannelConfig<T>
   ) {
     this.channels.set(name, {
       members,
       ...config,
-    })
-    return this
+    });
+    return this;
   }
 
   /**
@@ -222,12 +224,12 @@ export class AIbitat<T extends Provider> {
    * @returns The agent configuration.
    */
   private getAgentConfig(agent: string) {
-    const config = this.agents.get(agent)
+    const config = this.agents.get(agent);
     if (!config) {
-      throw new Error(`Agent configuration "${agent}" not found`)
+      throw new Error(`Agent configuration "${agent}" not found`);
     }
     return {
-      role: 'You are a helpful AI assistant.',
+      role: "You are a helpful AI assistant.",
       //       role: `You are a helpful AI assistant.
       // Solve tasks using your coding and language skills.
       // In the following cases, suggest typescript code (in a typescript coding block) or shell script (in a sh coding block) for the user to execute.
@@ -240,7 +242,7 @@ export class AIbitat<T extends Provider> {
       // When you find an answer, verify the answer carefully. Include verifiable evidence in your response if possible.
       // Reply "TERMINATE" when everything is done.`,
       ...config,
-    }
+    };
   }
 
   /**
@@ -251,15 +253,15 @@ export class AIbitat<T extends Provider> {
    * @returns The channel configuration.
    */
   private getChannelConfig(channel: string) {
-    const config = this.channels.get(channel)
+    const config = this.channels.get(channel);
     if (!config) {
-      throw new Error(`Channel configuration "${channel}" not found`)
+      throw new Error(`Channel configuration "${channel}" not found`);
     }
     return {
       maxRounds: 10,
-      role: '',
+      role: "",
       ...config,
-    }
+    };
   }
 
   /**
@@ -269,8 +271,8 @@ export class AIbitat<T extends Provider> {
    * @returns The members of the group.
    */
   private getGroupMembers(node: string) {
-    const group = this.getChannelConfig(node)
-    return group.members
+    const group = this.getChannelConfig(node);
+    return group.members;
   }
 
   /**
@@ -280,8 +282,8 @@ export class AIbitat<T extends Provider> {
    * @returns
    */
   public onTerminate(listener: (node: string) => void) {
-    this.emitter.on('terminate', listener)
-    return this
+    this.emitter.on("terminate", listener);
+    return this;
   }
 
   /**
@@ -290,7 +292,7 @@ export class AIbitat<T extends Provider> {
    * @param node Last node to chat with
    */
   private terminate(node: string) {
-    this.emitter.emit('terminate', node, this)
+    this.emitter.emit("terminate", node, this);
   }
 
   /**
@@ -300,8 +302,8 @@ export class AIbitat<T extends Provider> {
    * @returns
    */
   public onInterrupt(listener: (route: Route) => void) {
-    this.emitter.on('interrupt', listener)
-    return this
+    this.emitter.on("interrupt", listener);
+    return this;
   }
 
   /**
@@ -313,9 +315,9 @@ export class AIbitat<T extends Provider> {
   private interrupt(route: Route) {
     this._chats.push({
       ...route,
-      state: 'interrupt',
-    })
-    this.emitter.emit('interrupt', route, this)
+      state: "interrupt",
+    });
+    this.emitter.emit("interrupt", route, this);
   }
 
   /**
@@ -326,8 +328,8 @@ export class AIbitat<T extends Provider> {
    * @returns
    */
   public onMessage(listener: (chat: Chat) => void) {
-    this.emitter.on('message', listener)
-    return this
+    this.emitter.on("message", listener);
+    return this;
   }
 
   /**
@@ -337,8 +339,8 @@ export class AIbitat<T extends Provider> {
    * @returns
    */
   public onFunction(listener: (funct: string) => void) {
-    this.emitter.on('function', listener)
-    return this
+    this.emitter.on("function", listener);
+    return this;
   }
 
   /**
@@ -350,11 +352,11 @@ export class AIbitat<T extends Provider> {
   private newMessage(message: Message) {
     const chat = {
       ...message,
-      state: 'success' as const,
-    }
+      state: "success" as const,
+    };
 
-    this._chats.push(chat)
-    this.emitter.emit('message', chat, this)
+    this._chats.push(chat);
+    this.emitter.emit("message", chat, this);
   }
 
   /**
@@ -379,11 +381,11 @@ export class AIbitat<T extends Provider> {
       /**
        * The message when the error occurred.
        */
-      {}: Route,
-    ) => void,
+      {}: Route
+    ) => void
   ) {
-    this.emitter.on('replyError', listener)
-    return this
+    this.emitter.on("replyError", listener);
+    return this;
   }
 
   /**
@@ -397,10 +399,10 @@ export class AIbitat<T extends Provider> {
     const chat = {
       ...route,
       content: error instanceof Error ? error.message : String(error),
-      state: 'error' as const,
-    }
-    this._chats.push(chat)
-    this.emitter.emit('replyError', error, chat)
+      state: "error" as const,
+    };
+    this._chats.push(chat);
+    this.emitter.emit("replyError", error, chat);
   }
 
   /**
@@ -410,10 +412,10 @@ export class AIbitat<T extends Provider> {
    * @returns
    */
   public onStart<T extends Provider>(
-    listener: (chat: Chat, aibitat: AIbitat<T>) => void,
+    listener: (chat: Chat, aibitat: AIbitat<T>) => void
   ) {
-    this.emitter.on('start', listener)
-    return this
+    this.emitter.on("start", listener);
+    return this;
   }
 
   /**
@@ -423,16 +425,16 @@ export class AIbitat<T extends Provider> {
    */
   public async start(message: Message) {
     // register the message in the chat history
-    this.newMessage(message)
-    this.emitter.emit('start', message, this)
+    this.newMessage(message);
+    this.emitter.emit("start", message, this);
 
     // ask the node to reply
     await this.chat({
       to: message.from,
       from: message.to,
-    })
+    });
 
-    return this
+    return this;
   }
 
   /**
@@ -447,81 +449,81 @@ export class AIbitat<T extends Provider> {
     // and then ask them to reply.
     if (this.channels.get(route.from)) {
       // select a node from the group
-      let nextNode: string | undefined
+      let nextNode: string | undefined;
       try {
-        nextNode = await this.selectNext(route.from)
+        nextNode = await this.selectNext(route.from);
       } catch (error: unknown) {
         if (error instanceof APIError) {
-          return this.newError({from: route.from, to: route.to}, error)
+          return this.newError({ from: route.from, to: route.to }, error);
         }
-        throw error
+        throw error;
       }
 
       if (!nextNode) {
         // TODO: should it throw an error or keep the chat alive when there is no node to chat with in the group?
         // maybe it should wrap up the chat and reply to the original node
         // For now, it will terminate the chat
-        this.terminate(route.from)
-        return
+        this.terminate(route.from);
+        return;
       }
 
       const nextChat = {
         from: nextNode,
         to: route.from,
-      }
+      };
 
       if (this.shouldAgentInterrupt(nextNode)) {
-        this.interrupt(nextChat)
-        return
+        this.interrupt(nextChat);
+        return;
       }
 
       // get chats only from the group's nodes
-      const history = this.getHistory({to: route.from})
-      const group = this.getGroupMembers(route.from)
-      const rounds = history.filter(chat => group.includes(chat.from)).length
+      const history = this.getHistory({ to: route.from });
+      const group = this.getGroupMembers(route.from);
+      const rounds = history.filter((chat) => group.includes(chat.from)).length;
 
-      const {maxRounds} = this.getChannelConfig(route.from)
+      const { maxRounds } = this.getChannelConfig(route.from);
       if (rounds >= maxRounds) {
-        this.terminate(route.to)
-        return
+        this.terminate(route.to);
+        return;
       }
 
-      await this.chat(nextChat)
-      return
+      await this.chat(nextChat);
+      return;
     }
 
     // If it's a direct message, reply to the message
-    let reply: string
+    let reply: string;
     try {
-      reply = await this.reply(route)
+      reply = await this.reply(route);
     } catch (error: unknown) {
       if (error instanceof APIError) {
-        return this.newError({from: route.from, to: route.to}, error)
+        return this.newError({ from: route.from, to: route.to }, error);
       }
-      throw error
+      throw error;
     }
 
     if (
-      reply === 'TERMINATE' ||
+      reply === "TERMINATE" ||
       this.hasReachedMaximumRounds(route.from, route.to)
     ) {
-      this.terminate(route.to)
-      return
+      this.terminate(route.to);
+      return;
     }
 
-    const newChat = {to: route.from, from: route.to}
+    const newChat = { to: route.from, from: route.to };
 
     if (
-      reply === 'INTERRUPT' ||
+      reply === "INTERRUPT" ||
       (this.agents.get(route.to) && this.shouldAgentInterrupt(route.to))
     ) {
-      this.interrupt(newChat)
-      return
+      this.interrupt(newChat);
+      return;
     }
 
     if (keepAlive) {
       // keep the chat alive by replying to the other node
-      await this.chat(newChat, true)
+      await this.chat(newChat, true);
     }
   }
 
@@ -532,8 +534,8 @@ export class AIbitat<T extends Provider> {
    * @returns {boolean} Whether the agent should interrupt the chat.
    */
   private shouldAgentInterrupt(agent: string) {
-    const config = this.getAgentConfig(agent)
-    return this.defaultInterrupt === 'ALWAYS' || config.interrupt === 'ALWAYS'
+    const config = this.getAgentConfig(agent);
+    return this.defaultInterrupt === "ALWAYS" || config.interrupt === "ALWAYS";
   }
 
   /**
@@ -546,34 +548,34 @@ export class AIbitat<T extends Provider> {
    */
   private async selectNext(channel: string) {
     // get all members of the group
-    const nodes = this.getGroupMembers(channel)
-    const channelConfig = this.getChannelConfig(channel)
+    const nodes = this.getGroupMembers(channel);
+    const channelConfig = this.getChannelConfig(channel);
 
     // TODO: move this to when the group is created
     // warn if the group is underpopulated
     if (nodes.length < 3) {
       console.warn(
-        `- Group (${channel}) is underpopulated with ${nodes.length} agents. Direct communication would be more efficient.`,
-      )
+        `- Group (${channel}) is underpopulated with ${nodes.length} agents. Direct communication would be more efficient.`
+      );
     }
 
     // get the nodes that have not reached the maximum number of rounds
     const availableNodes = nodes.filter(
-      node => !this.hasReachedMaximumRounds(channel, node),
-    )
+      (node) => !this.hasReachedMaximumRounds(channel, node)
+    );
 
     // remove the last node that chatted with the channel, so it doesn't chat again
-    const lastChat = this._chats.filter(c => c.to === channel).at(-1)
+    const lastChat = this._chats.filter((c) => c.to === channel).at(-1);
     if (lastChat) {
-      const index = availableNodes.indexOf(lastChat.from)
+      const index = availableNodes.indexOf(lastChat.from);
       if (index > -1) {
-        availableNodes.splice(index, 1)
+        availableNodes.splice(index, 1);
       }
     }
 
     if (!availableNodes.length) {
       // TODO: what should it do when there is no node to chat with?
-      return
+      return;
     }
 
     // get the provider that will be used for the channel
@@ -581,53 +583,53 @@ export class AIbitat<T extends Provider> {
     // use the GPT-4 because it has a better reasoning
     const provider = this.getProviderForConfig({
       // @ts-expect-error
-      model: 'gpt-4',
+      model: "gpt-4",
       ...this.defaultProvider,
       ...channelConfig,
-    })
-    const history = this.getHistory({to: channel})
+    });
+    const history = this.getHistory({ to: channel });
 
     // build the messages to send to the provider
     const messages = [
       {
-        role: 'system' as const,
+        role: "system" as const,
         content: channelConfig.role,
       },
       {
-        role: 'user' as const,
+        role: "user" as const,
         content: `You are in a role play game. The following roles are available:
 ${availableNodes
-  .map(node => `@${node}: ${this.getAgentConfig(node).role}`)
-  .join('\n')}.
+  .map((node) => `@${node}: ${this.getAgentConfig(node).role}`)
+  .join("\n")}.
 
 Read the following conversation.
 
 CHAT HISTORY
-${history.map(c => `@${c.from}: ${c.content}`).join('\n')}
+${history.map((c) => `@${c.from}: ${c.content}`).join("\n")}
 
 Then select the next role from that is going to speak next. 
 Only return the role.
 `,
       },
-    ]
+    ];
 
     // ask the provider to select the next node to chat with
     // and remove the @ from the response
-    const {result} = await provider.complete(messages)
-    const name = result!.replace(/^@/g, '')
+    const { result } = await provider.complete(messages);
+    const name = result!.replace(/^@/g, "");
     if (this.agents.get(name)) {
-      return name
+      return name;
     }
 
     // if the name is not in the nodes, return a random node
-    return availableNodes[Math.floor(Math.random() * availableNodes.length)]
+    return availableNodes[Math.floor(Math.random() * availableNodes.length)];
   }
 
   /**
    * Check if the chat has reached the maximum number of rounds.
    */
   private hasReachedMaximumRounds(from: string, to: string): boolean {
-    return this.getHistory({from, to}).length >= this.maxRounds
+    return this.getHistory({ from, to }).length >= this.maxRounds;
   }
 
   /**
@@ -638,7 +640,7 @@ Only return the role.
    */
   private async reply(route: Route) {
     // get the provider for the node that will reply
-    const fromConfig = this.getAgentConfig(route.from)
+    const fromConfig = this.getAgentConfig(route.from);
 
     const chatHistory =
       // if it is sending message to a group, send the group chat history to the provider
@@ -646,62 +648,62 @@ Only return the role.
       this.channels.get(route.to)
         ? [
             {
-              role: 'user' as const,
+              role: "user" as const,
               content: `You are in a whatsapp group. Read the following conversation and then reply. 
 Do not add introduction or conclusion to your reply because this will be a continuous conversation. Don't introduce yourself.
 
 CHAT HISTORY
-${this.getHistory({to: route.to})
-  .map(c => `@${c.from}: ${c.content}`)
-  .join('\n')}
+${this.getHistory({ to: route.to })
+  .map((c) => `@${c.from}: ${c.content}`)
+  .join("\n")}
 
 @${route.from}:`,
             },
           ]
-        : this.getHistory(route).map(c => ({
+        : this.getHistory(route).map((c) => ({
             content: c.content,
             role:
-              c.from === route.to ? ('user' as const) : ('assistant' as const),
-          }))
+              c.from === route.to ? ("user" as const) : ("assistant" as const),
+          }));
 
     // build the messages to send to the provider
     const messages = [
       {
         content: fromConfig.role,
-        role: 'system' as const,
+        role: "system" as const,
       },
       // get the history of chats between the two nodes
       ...chatHistory,
-    ]
+    ];
 
     // get the functions that the node can call
     const functions = fromConfig.functions
-      ?.map(name => this.functions.get(name))
-      .filter(a => !!a) as Function.FunctionConfig[] | undefined
+      ?.map((name) => this.functions.get(name))
+      .filter((a) => !!a) as Function.FunctionConfig[] | undefined;
 
     const provider = this.getProviderForConfig({
       ...this.defaultProvider,
       ...fromConfig,
-    })
+    });
 
     // get the chat completion
-    const content = await this.handleExecution(provider, messages, functions)
-    this.newMessage({...route, content})
+    const content = await this.handleExecution(provider, messages, functions);
+    this.newMessage({ ...route, content });
 
-    return content
+    return content;
   }
 
   private async handleExecution(
     provider: Providers.Provider<unknown>,
     messages: Providers.Provider.Message[],
-    functions?: AIbitat.FunctionDefinition[],
+    functions?: AIbitat.FunctionDefinition[]
   ): Promise<string> {
     // get the chat completion
-    const completion = await provider.complete(messages, functions)
+    const completion = await provider.complete(messages, functions);
 
     if (completion.functionCall) {
-      const {name, arguments: args} = completion.functionCall
-      const fn = this.functions.get(name)
+      const { name, arguments: args } = completion.functionCall;
+      const fn = this.functions.get(name);
 
       // if provider hallucinated on the function name
       // ask the provider to complete again
@@ -712,32 +714,32 @@ ${this.getHistory({to: route.to})
             ...messages,
             {
               name,
-              role: 'function',
+              role: "function",
               content: `Function "${name}" not found. Try again.`,
             },
           ],
-          functions,
-        )
+          functions
+        );
       }
 
-      this.emitter.emit('function', fn.name, this)
+      this.emitter.emit("function", fn.name, this);
       // Execute the function and return the result to the provider
-      const result = await fn.handler(args)
+      const result = await fn.handler(args);
       return await this.handleExecution(
         provider,
         [
           ...messages,
           {
             name,
-            role: 'function',
+            role: "function",
             content: result,
           },
         ],
-        functions,
-      )
+        functions
+      );
     }
 
-    return completion.result!
+    return completion.result!;
   }
 
   /**
@@ -749,18 +751,18 @@ ${this.getHistory({to: route.to})
    * @returns
    */
   public async continue(feedback?: string | null) {
-    const lastChat = this._chats.at(-1)
-    if (!lastChat || lastChat.state !== 'interrupt') {
-      throw new Error('No chat to continue')
+    const lastChat = this._chats.at(-1);
+    if (!lastChat || lastChat.state !== "interrupt") {
+      throw new Error("No chat to continue");
     }
 
     // remove the last chat's that was interrupted
-    this._chats.pop()
+    this._chats.pop();
 
-    const {from, to} = lastChat
+    const { from, to } = lastChat;
 
     if (this.hasReachedMaximumRounds(from, to)) {
-      throw new Error('Maximum rounds reached')
+      throw new Error("Maximum rounds reached");
     }
 
     if (feedback) {
@@ -768,21 +770,21 @@ ${this.getHistory({to: route.to})
         from,
         to,
         content: feedback,
-      }
+      };
 
       // register the message in the chat history
-      this.newMessage(message)
+      this.newMessage(message);
 
       // ask the node to reply
       await this.chat({
         to: message.from,
         from: message.to,
-      })
+      });
     } else {
-      await this.chat({from, to})
+      await this.chat({ from, to });
     }
 
-    return this
+    return this;
   }
 
   /**
@@ -790,47 +792,47 @@ ${this.getHistory({to: route.to})
    * If the last chat was not an error, it will throw an error.
    */
   public async retry() {
-    const lastChat = this._chats.at(-1)
-    if (!lastChat || lastChat.state !== 'error') {
-      throw new Error('No chat to retry')
+    const lastChat = this._chats.at(-1);
+    if (!lastChat || lastChat.state !== "error") {
+      throw new Error("No chat to retry");
     }
 
     // remove the last chat's that threw an error
-    const {from, to} = this._chats.pop()!
+    const { from, to } = this._chats.pop()!;
 
-    await this.chat({from, to})
-    return this
+    await this.chat({ from, to });
+    return this;
   }
 
   /**
    * Get the chat history between two nodes or all chats to/from a node.
    */
-  private getHistory({from, to}: {from?: string; to?: string}) {
-    return this._chats.filter(chat => {
-      const isSuccess = chat.state === 'success'
+  private getHistory({ from, to }: { from?: string; to?: string }) {
+    return this._chats.filter((chat) => {
+      const isSuccess = chat.state === "success";
 
       // return all chats to the node
       if (!from) {
-        return isSuccess && chat.to === to
+        return isSuccess && chat.to === to;
       }
 
       // get all chats from the node
       if (!to) {
-        return isSuccess && chat.from === from
+        return isSuccess && chat.from === from;
       }
 
       // check if the chat is between the two nodes
-      const hasSent = chat.from === from && chat.to === to
-      const hasReceived = chat.from === to && chat.to === from
-      const mutual = hasSent || hasReceived
+      const hasSent = chat.from === from && chat.to === to;
+      const hasReceived = chat.from === to && chat.to === from;
+      const mutual = hasSent || hasReceived;
 
-      return isSuccess && mutual
+      return isSuccess && mutual;
     }) as {
-      from: string
-      to: string
-      content: string
-      state: 'success'
-    }[]
+      from: string;
+      to: string;
+      content: string;
+      state: "success";
+    }[];
   }
 
   /**
@@ -840,20 +842,20 @@ ${this.getHistory({to: route.to})
    * @param config The provider configuration.
    */
   private getProviderForConfig<T extends Provider>(config: ProviderConfig<T>) {
-    if (typeof config.provider === 'object') {
-      return config.provider
+    if (typeof config.provider === "object") {
+      return config.provider;
     }
 
     switch (config.provider) {
-      case 'openai':
-        return new Providers.OpenAIProvider({model: config.model})
-      case 'anthropic':
-        return new Providers.AnthropicProvider({model: config.model})
+      case "openai":
+        return new Providers.OpenAIProvider({ model: config.model });
+      case "anthropic":
+        return new Providers.AnthropicProvider({ model: config.model });
 
       default:
         throw new Error(
-          `Unknown provider: ${config.provider}. Please use "openai"`,
-        )
+          `Unknown provider: ${config.provider}. Please use "openai"`
+        );
     }
   }
 
@@ -863,8 +865,8 @@ ${this.getHistory({to: route.to})
    * @param functionConfig The function configuration.
    */
   public function(functionConfig: AIbitat.FunctionConfig) {
-    this.functions.set(functionConfig.name, functionConfig)
-    return this
+    this.functions.set(functionConfig.name, functionConfig);
+    return this;
   }
 }
 
@@ -877,17 +879,17 @@ export namespace AIbitat {
      * The name of the plugin. This will be used to identify the plugin.
      * If the plugin is already installed, it will replace the old plugin.
      */
-    name: string
+    name: string;
 
     /**
      * The setup function to be called when the plugin is installed.
      */
-    setup: (aibitat: AIbitat<T>) => void
-  }
+    setup: (aibitat: AIbitat<T>) => void;
+  };
 
-  export type FunctionConfig = Function.FunctionConfig
-  export type FunctionDefinition = Function.FunctionDefinition
-  export type FunctionCall = Function.FunctionCall
+  export type FunctionConfig = Function.FunctionConfig;
+  export type FunctionDefinition = Function.FunctionDefinition;
+  export type FunctionCall = Function.FunctionCall;
 }
 
-export default AIbitat
+export default AIbitat;
