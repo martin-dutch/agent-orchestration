@@ -198,6 +198,17 @@ export async function POST(
       });
     })
 
+    aibitat.onFunction(async (func) => {
+      await prismadb.companion.update({
+        where: {
+          id: params.chatId
+        },
+        data: {
+          functionCalling: func
+        }
+      });
+    })
+
     
         // aibitat.onTerminate(() => {
         //     console.log('terminate')
