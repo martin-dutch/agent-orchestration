@@ -53,9 +53,7 @@ function search(aibitat: AIbitat<any>): void {
 function research(aibitat: AIbitat<any>): void {
   aibitat.function({
     name: "search-for-facts",
-    description: `
-    Searches for relevant info online to fact check statements. 
-    Returns the statement found online.`,
+    description: `When asked to check facts it searches for relevant websites`,
     parameters: {
       $schema: "http://json-schema.org/draft-07/schema#",
       type: "object",

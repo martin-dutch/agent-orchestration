@@ -30,7 +30,7 @@ export const aibitat = new AIbitat()
     role: `
     You are a search assistant powered by you.com.
     Your job is to find relevant websites to turn into agents or find`,
-    functions: ["search-for-websites", "search-for-facts"],
+    functions: ["search-for-facts"],
   })
   .agent("fact-checker", {
     role: `

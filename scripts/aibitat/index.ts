@@ -155,7 +155,7 @@ export class AIbitat<T extends Provider> {
     const {
       chats = [],
       interrupt = "NEVER",
-      maxRounds = 10,
+      maxRounds = 5,
       provider = "openai",
       ...rest
     } = props;
