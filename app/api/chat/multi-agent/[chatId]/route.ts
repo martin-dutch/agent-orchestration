@@ -53,7 +53,11 @@ export async function GET(
   // console.log('history', aibitat.chats)
   console.log(' aibitat.functionCalling', aibitat.functionCalling)
 
-  return new NextResponse(JSON.stringify({history: aibitat.chats.filter((chat) => chat.content != null), functionCalling: aibitat.functionCalling }));
+  // console.log(Array.from(aibitat.agents))
+
+  console.log('aibitat.agents',JSON.stringify(Array.from(aibitat.agents)))
+
+  return new NextResponse(JSON.stringify({history: aibitat.chats.filter((chat) => chat.content != null), functionCalling: aibitat.functionCalling, agents: Array.from(aibitat.agents) }));
 }
 
 export async function POST(

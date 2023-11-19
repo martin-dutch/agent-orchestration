@@ -14,7 +14,7 @@ export const BotAvatar = ({
 <Card className="w-48 p-4 bg-white dark:bg-gray-800 rounded shadow hover:shadow-lg transition-shadow duration-200">
 <div className="flex items-center space-x-4">
 <Avatar className="h-12 w-12">
-      <AvatarImage />
+      <AvatarImage src={`https://gravatar.com/avatar/${agentName}?d=robohash`} />
       {/* <h3>{agentName}</h3> */}
     </Avatar>
   <div>
