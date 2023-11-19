@@ -34,8 +34,10 @@ export const ChatClient = ({
   useEffect(() => {
     (async () => {
       try {
-        await fetch(`/api/chat/multi-agent/${companion.id}`, {
-          method: "PUT",
+        await fetch(`/api/chat/multi-agent/${companion.id}/setup`, {
+          method: "POST",
+          credentials: "same-origin",
+          mode: "same-origin",
         });
       } catch (err) {
         console.error(err);

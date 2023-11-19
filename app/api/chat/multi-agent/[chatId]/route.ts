@@ -15,7 +15,7 @@ const ASSISTANT_MODEL = "gpt-4-1106-preview";
 const ASSISTANT_DESCRIPTION =
   "A friendly assistant to help you with your queries.";
 
-const aibitat = new AIbitat()
+export const aibitat = new AIbitat()
   .use(agents({ dbClient: prismadb }))
   .agent("client", {
     interrupt: "ALWAYS",
@@ -64,38 +64,6 @@ export async function GET(
   });
 
   return new NextResponse(JSON.stringify(companion));
-}
-
-export async function PUT(
-  request: Request,
-  { params }: { params: { chatId: string } }
-) {
-  const user = await currentUser();
-  const chatId = params.chatId;
-
-  if (!user || !user.id) {
-    return new NextResponse("Unauthorized", { status: 401 });
-  }
-
-  aibitat.onInterrupt((chat) => {});
-
-  aibitat.onMessage(async (chat) => {
-    await prismadb.companion.update({
-      where: {
-        id: params.chatId,
-      },
-      data: {
-        messages: {
-          create: {
-            content: chat.content ?? "",
-            role: "system",
-            agentName: chat.from,
-            userId: user.id,
-          },
-        },
-      },
-    });
-  });
 }
 
 export async function POST(
