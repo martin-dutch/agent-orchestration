@@ -31,21 +31,7 @@ export const ChatClient = ({
   // const [messages, setMessages] = useState<ChatMessageProps[]>(companion.messages);
 
   const [companionChate, setCompanionChat] = useState<{history: History; companion: Companion} | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        await fetch(`/api/chat/multi-agent/${companion.id}/setup`, {
-          method: "POST",
-          credentials: "same-origin",
-          mode: "same-origin",
-        });
-      } catch (err) {
-        console.error(err);
-      }
-    })();
-  }, [companion.id])
-
+  
   useEffect(() => {
     const fetchData = async () => {
       try {

@@ -89,7 +89,6 @@ export async function POST(
     }
 
     const name = companion.id;
-    const companion_file_name = name + ".txt";
 
     const companionKey = {
       companionName: name!,
@@ -110,20 +109,6 @@ export async function POST(
 
     // Right now the preamble is included in the similarity search, but that
     // shouldn't be an issue
-
-    console.debug("pinecone search starting", recentChatHistory);
-    console.debug("companion_file_name", companion_file_name);
-    const similarDocs = await memoryManager.vectorSearch(
-      recentChatHistory,
-      companion_file_name
-    );
-    console.debug("pinecone search ending", similarDocs);
-
-    let relevantHistory = "";
-    if (!!similarDocs && similarDocs.length !== 0) {
-      relevantHistory = similarDocs.map((doc) => doc.pageContent).join("\n");
-    }
-
     // aibitat.onMessage(console.log)
     var Readable = require("stream").Readable;
     let s = new Readable();
@@ -134,33 +119,10 @@ export async function POST(
 
     aibitat.onMessage(async (chat) => {
       console.log('ONMESSAGE', chat)
-      await prismadb.companion.update({
-        where: {
-          id: params.chatId
-        },
-        data: {
-          messages: {
-            create: {
-              content: chat.content ?? '',
-              role: "system",
-              agentName: chat.from,
-              userId: user.id,
-            },
-          },
-        }
-      });
     })
 
     aibitat.onFunction(async (func) => {
       console.log('CALLING FUNCITON', func)
-      await prismadb.companion.update({
-        where: {
-          id: params.chatId
-        },
-        data: {
-          functionCalling: func
-        }
-      });
     })
 
     await aibitat.start({
