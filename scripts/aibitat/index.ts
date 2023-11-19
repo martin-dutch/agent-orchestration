@@ -742,6 +742,7 @@ ${this.getHistory({ to: route.to })
       this.emitter.emit("function", fn.name, this);
       // Execute the function and return the result to the provider
       const result = await fn.handler(args);
+      console.log('RESULT', result)
       this._functionCalling = undefined;
       return await this.handleExecution(
         provider,

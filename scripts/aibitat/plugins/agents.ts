@@ -22,7 +22,7 @@ function listRunningAgents(aibitat: AIbitat<any>): void {
       const agents = Array.from(aibitat.agents.values());
       console.debug(agents);
 
-      return JSON.stringify(agents);
+      return `${agents.map((agent, index)=>  `AGENT${index}: ${JSON.stringify(agent)}`)}`;
     },
   })
 }
