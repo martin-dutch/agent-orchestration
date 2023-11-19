@@ -42,9 +42,6 @@ export async function GET(
     }
   });
 
-  console.log('history', aibitat.chats)
-  console.log('companion', companion)
-
   return new NextResponse(JSON.stringify({history: aibitat.chats, companion: companion }));
 }
 
