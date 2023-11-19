@@ -62,7 +62,12 @@ function createAgentForUrl(aibitat: AIbitat<any>): void {
         data: content
       });
       aibitat.addToChannel('broadcast', [name]);
-      return "Agent " + name + " has joined the chat."
+
+      return JSON.stringify({
+        name,
+        role: `
+        You are a specialist on the website of ${url}.`,
+      })
     },
   })
 }
@@ -72,7 +77,7 @@ function createAgentForExpertise(aibitat: AIbitat<any>): void {
   aibitat.function({
     name: "create-agent-for-expertise",
     description:
-      "Create a new agent for a speicific expertise and add it to the channel.",
+      "Create a new agent for a specific expertise and add it to the channel.",
     parameters: {
       $schema: "http://json-schema.org/draft-07/schema#",
       type: "object",
@@ -99,7 +104,11 @@ function createAgentForExpertise(aibitat: AIbitat<any>): void {
         You are a expert on the ${expertise}. You want to answer all questions related to ${expertise}. You can also ask questions to get other people's opinions especially fact checkers.`,
       });
       aibitat.addToChannel('broadcast', [expertise]);
-      return "Agent " + expertise + " has joined the chat."
+      return JSON.stringify({
+        name: expertise,
+        role: `
+        You are an expert on ${expertise}.`,
+      })
     },
   })
 }

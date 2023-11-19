@@ -22,7 +22,8 @@ export const aibitat = new AIbitat()
   .agent("agent-manager", {
     role: `
     You are the agent manager.
-    Your job is to create and manage agents.`,
+    Your job is to create and manage agents.
+    DO NOT ask questions or answer questions.`,
     functions: ["list-running-agents", "create-agent-for-url", "create-agent-for-expertise"],
   })
   .agent("you.com-search", {
@@ -32,9 +33,12 @@ export const aibitat = new AIbitat()
     functions: ["search-for-websites", "search-for-facts"],
   })
   .agent("fact-checker", {
-    role: `You are a fact checker assistant powered by you.com and the internet.
-    You are amazing searching the internet to fact check any information that might be wrong. 
-    Make sure to fact check and use the internet. Never ask a question always fact check`,
+    role: `
+    You are a fact checker assistant powered by you.com.
+    Your job is to determine whether previous statements are true or false.
+    To search for information only online use the function "search-for-facts" by @you.com-search.
+    You only respond to messages from other agents or when asked directly.`,
+    functions: ["search-for-facts"],
   })
   .channel("broadcast", ["client", "agent-manager", "you.com-search", "fact-checker"]);
 

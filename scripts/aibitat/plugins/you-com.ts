@@ -43,7 +43,7 @@ function search(aibitat: AIbitat<any>): void {
       const json = await res.json();
 
       const urls = json.hits.map((h: any) => h.url);
-      console.log(urls);
+      console.debug(urls);
 
       return JSON.stringify(urls);
     },
@@ -53,7 +53,9 @@ function search(aibitat: AIbitat<any>): void {
 function research(aibitat: AIbitat<any>): void {
   aibitat.function({
     name: "search-for-facts",
-    description: "Searches for relevant info online to fact check statements. Returns a list of relevant snippets.",
+    description: `
+    Searches for relevant info online to fact check statements. 
+    Returns the statement found online.`,
     parameters: {
       $schema: "http://json-schema.org/draft-07/schema#",
       type: "object",
@@ -79,7 +81,9 @@ function research(aibitat: AIbitat<any>): void {
 
       const json = await res.json();
 
-      return JSON.stringify(json.answer);
+      console.debug(json);
+
+      return json.answer;
     },
   });
 }
