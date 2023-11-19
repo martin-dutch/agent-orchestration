@@ -103,8 +103,8 @@ export const ChatClient = ({
 
   console.log('companionChate', companionChate)
   return (
-    <div>
-      <div className="flex flex-col h-full p-4 space-y-2">
+    // <div>
+    <div className="flex flex-col h-full p-4 space-y-2">
       <ChatHeader companion={companion} />
       <ChatMessages
         functionCalling={companionChate?.functionCalling}
@@ -117,16 +117,24 @@ export const ChatClient = ({
         handleInputChange={handleInputChange} 
         onSubmit={onSubmit} 
       />
-    </div>
-    <div className="absolute right-0 top-0 h-full w-[300px] overflow-auto">
+      <div className="absolute right-0 top-0 h-full w-[300px] overflow-auto">
     {
         companionChate?.agents.slice(0).reverse().map((agent, index) => (
           <RobCard key={index} name={agent[0]} role={agent[1]?.role ?? ''} functions={agent[1]?.functions ?? []} />
         ))
       }
+    </div> 
     </div>
-      
-    </div>
+   
+    
     
    );
 }
+
+ {/* <div className="absolute right-0 top-0 h-full w-[300px] overflow-auto">
+    {
+        companionChate?.agents.slice(0).reverse().map((agent, index) => (
+          <RobCard key={index} name={agent[0]} role={agent[1]?.role ?? ''} functions={agent[1]?.functions ?? []} />
+        ))
+      }
+    </div> */}

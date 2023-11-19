@@ -42,7 +42,6 @@ export const ChatMessage = ({
     })
   }
 
-  console.log('IFDSOSDNV',functionCalling)
   return (
     <div className={cn(
       "group flex items-start gap-x-3 py-4 w-full",

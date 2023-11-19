@@ -23,11 +23,11 @@ function search(aibitat: AIbitat<any>): void {
           type: "number",
           description: "Maximum number of websites to search",
           default: 5,
-        }
+        },
       },
       additionalProperties: false,
     },
-    async handler({ query, size = 5 }: { query: string, size: number }) {
+    async handler({ query, size = 5 }: { query: string; size: number }) {
       const url = new URL("https://api.ydc-index.io/search");
       url.searchParams.set("query", query);
       url.searchParams.set("num_web_results", size.toString());
@@ -53,8 +53,7 @@ function search(aibitat: AIbitat<any>): void {
 function research(aibitat: AIbitat<any>): void {
   aibitat.function({
     name: "search-for-facts",
-    description:
-      "Searches for relevant info online to fact check statements",
+    description: "Searches for relevant info online to fact check statements. Returns a list of relevant snippets.",
     parameters: {
       $schema: "http://json-schema.org/draft-07/schema#",
       type: "object",
@@ -63,12 +62,12 @@ function research(aibitat: AIbitat<any>): void {
         query: {
           type: "string",
           description: "The query to find the information for.",
-        }
+        },
       },
       additionalProperties: false,
     },
-    async handler({ query }: { query: string, size: number }) {
-      const url = new URL("https://api.ydc-index.io/search");
+    async handler({ query }: { query: string; size: number }) {
+      const url = new URL("https://api.ydc-index.io/rag");
       url.searchParams.set("query", query);
       url.searchParams.set("num_web_results", "5");
 
@@ -80,10 +79,7 @@ function research(aibitat: AIbitat<any>): void {
 
       const json = await res.json();
 
-      const urls = json.hits.map((h: {snippets: string[]}) => h.snippets.join(' '));
-      console.log('snippet',urls);
-
-      return JSON.stringify(urls);
+      return JSON.stringify(json.answer);
     },
   });
 }
@@ -93,7 +89,7 @@ export function youCom({}: {}) {
     name: "you.com-plugin",
     setup(aibitat) {
       search(aibitat);
-      research(aibitat)
+      research(aibitat);
     },
   } as AIbitat.Plugin<any>;
 }

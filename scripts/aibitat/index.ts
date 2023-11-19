@@ -614,20 +614,14 @@ export class AIbitat<T extends Provider> {
       {
         role: "user" as const,
         content: `You are in a role play game. The following roles are available:
-${availableNodes.slice(0).filter((node) => node !== this._chats.slice(0).reverse().slice(0,1)[0]?.from).reverse()
+${availableNodes
   .map((node) => `@${node}: ${this.getAgentConfig(node).role}`)
   .join("\n")}.
 
 Read the following conversation.
 
 CHAT HISTORY
-${history.slice(Math.max(history.length - 3, 0), Math.max(history.length -1, 0)).map((c) => `@${c.from}: ${c.content}`).join("\n")}
-
-Final statement
-${history.slice(0).reverse().slice(0,1)}
-END
-
-If the final message contains information that talks about facts that might be untrue. choose the you.com fact checker
+${history.slice(-20).map((c) => `@${c.from}: ${c.content}`).join("\n")}
 
 Only return the role.
 `,
