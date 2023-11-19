@@ -83,7 +83,7 @@ function research(aibitat: AIbitat<any>): void {
 
       console.debug(json);
 
-      return json.answer;
+      return json.answer ?? "I didn't find anything online.";
     },
   });
 }
