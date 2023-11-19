@@ -48,7 +48,7 @@ export const ChatMessage = ({
       "group flex items-start gap-x-3 py-4 w-full",
       role === "user" && "justify-end"
     )}>
-      {role !== "user" && src && <BotAvatar src={src} agentName={agentName ?? ''} />}
+      {role !== "user" && <BotAvatar agentName={agentName ?? ''} />}
       <div className="rounded-md px-4 py-2 max-w-sm text-sm bg-primary/10" >
         {isLoading 
           ? <BeatLoader color={theme === "light" ? "black" : "white"} size={5} /> 

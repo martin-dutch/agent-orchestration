@@ -153,7 +153,7 @@ export class AIbitat<T extends Provider> {
     const {
       chats = [],
       interrupt = "NEVER",
-      maxRounds = 100,
+      maxRounds = 10,
       provider = "openai",
       ...rest
     } = props;
@@ -612,15 +612,16 @@ export class AIbitat<T extends Provider> {
       {
         role: "user" as const,
         content: `You are in a role play game. The following roles are available:
-${availableNodes
+${availableNodes.reverse()
   .map((node) => `@${node}: ${this.getAgentConfig(node).role}`)
   .join("\n")}.
 
 Read the following conversation.
 
 CHAT HISTORY
-${history.map((c) => `@${c.from}: ${c.content}`).join("\n")}
+${history.slice(Math.max(history.length - 3, 0), Math.max(history.length -1, 0)).map((c) => `@${c.from}: ${c.content}`).join("\n")}
 
+If the conversation is talking about fact and the you.com agent hasn't given it's opioniion yet, ask the you.com agent to give its opinion.
 Then select the next role from that is going to speak next. 
 Only return the role.
 `,

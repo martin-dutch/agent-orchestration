@@ -21,7 +21,7 @@ export const aibitat = new AIbitat()
     role: `
     You are the agent manager.
     Your job is to create and manage agents.`,
-    functions: ["list-running-agents", "create-agent-for-url"],
+    functions: ["list-running-agents", "create-agent-for-url", "create-agent-for-expertise"],
   })
   .channel("broadcast", ["client", "agent-manager"]);
 
@@ -39,7 +39,7 @@ export async function GET(
   // console.log('history', aibitat.chats)
   console.log(' aibitat.functionCalling', aibitat.functionCalling)
 
-  return new NextResponse(JSON.stringify({history: aibitat.chats, functionCalling: aibitat.functionCalling }));
+  return new NextResponse(JSON.stringify({history: aibitat.chats.filter((chat) => chat.content != null), functionCalling: aibitat.functionCalling }));
 }
 
 export async function POST(
@@ -69,6 +69,7 @@ export async function POST(
       to: "broadcast",
       content: prompt,
     });
+    return new NextResponse("Internal Error", { status: 200 });
   } catch (error) {
     console.log(error);
     return new NextResponse("Internal Error", { status: 500 });

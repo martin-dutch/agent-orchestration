@@ -64,12 +64,50 @@ function createAgentForUrl(aibitat: AIbitat<any>): void {
 }
 
 
+function createAgentForExpertise(aibitat: AIbitat<any>): void {
+  aibitat.function({
+    name: "create-agent-for-expertise",
+    description:
+      "Create a new agent for a speicific expertise and add it to the channel.",
+    parameters: {
+      $schema: "http://json-schema.org/draft-07/schema#",
+      type: "object",
+      required: ["expertise"],
+      properties: {
+        expertise: {
+          type: "string",
+          format: "string",
+          description: "The expertise niche to create an agent for.",
+        },
+      },
+      additionalProperties: false,
+    },
+    async handler({expertise}: {expertise: string}) {
+
+      // const name = new URL(url).hostname;
+      // const content = await scrape(url);
+      // console.debug(content);
+
+      
+
+      aibitat.agent(expertise, {
+        role: `
+        You are a expertise on ${expertise}.`,
+      });
+      aibitat.addToChannel('broadcast', [expertise]);
+      return "Agent " + expertise + " has joined the chat."
+    },
+  })
+}
+
+
 export function agents({ dbClient }: AgentsOptions) {
   return {
     name: "agents-plugin",
     setup(aibitat) {
       listRunningAgents(aibitat);
       createAgentForUrl(aibitat);
+      createAgentForExpertise(aibitat);
     },
   } as AIbitat.Plugin<any>;
 }

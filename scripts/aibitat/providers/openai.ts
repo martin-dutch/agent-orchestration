@@ -96,12 +96,14 @@ export class OpenAIProvider extends Provider<OpenAI> {
           functionArgs = JSON.parse(completion.function_call.arguments)
         } catch (error) {
           // call the complete function again in case it gets a json error
+          console.log('completion.function_call.name.split 111',completion.function_call.name.split('.')[completion.function_call.name.split('.').length -1],)
+          console.log('completion.function_call.name.split 222',completion.function_call.name.split('.'))
           return this.complete(
             [
               ...messages,
               {
                 role: 'function',
-                name: completion.function_call.name,
+                name: completion.function_call.name.split('.')[completion.function_call.name.split('.').length -1],
                 function_call: completion.function_call,
                 content: (error as Error).message,
               },
