@@ -20,7 +20,7 @@ export const aibitat = new AIbitat()
   .agent("agent-manager", {
     role: `
     You are the agent manager.
-    You get called by @client to execute functions that list or create agents.`,
+    Your job is to create and manage agents.`,
     functions: ["list-running-agents", "create-agent-for-url"],
   })
   .channel("broadcast", ["client", "agent-manager"]);
