@@ -623,8 +623,8 @@ Read the following conversation.
 CHAT HISTORY
 ${history.slice(Math.max(history.length - 3, 0), Math.max(history.length -1, 0)).map((c) => `@${c.from}: ${c.content}`).join("\n")}
 
-If the conversation is talking about fact and the you.com agent hasn't given it's opioniion yet, ask the you.com agent to give its opinion.
-Then select the next role from that is going to speak next. 
+If there is something that might not be factually true, choose the you.com fact checker agent agent
+
 Only return the role.
 `,
       },

@@ -43,7 +43,7 @@ export const ChatMessages = ({
         // src={companion.src}
         role="system"
         agentName={'system'}
-        content={`Hello, I am ${'your assistant'}, ${'and im here to help you orchestrate your swarm or creat new agents for you'}`}
+        content={`Hello, I am ${'your assistant'}, ${'and I\'m here to help you orchestrate your swarm or create new agents for you'}`}
       />
       {messages.map((message, index) => (
         <ChatMessage

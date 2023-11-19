@@ -31,7 +31,13 @@ export const aibitat = new AIbitat()
     Your job is to find relevant websites to turn into agents.`,
     functions: ["search-for-websites"],
   })
-  .channel("broadcast", ["client", "agent-manager", "you.com-search"]);
+  .agent("you.com-fact-checker", {
+    role: `
+    You are a fact checker assistant powered by you.com.
+    Your job is to use information you find on the internet to make sure the last message is factually accurate`,
+    functions: ["search-for-facts"],
+  })
+  .channel("broadcast", ["client", "agent-manager", "you.com-search", "you.com-fact-checker"]);
 
 export async function GET(
   request: Request,
