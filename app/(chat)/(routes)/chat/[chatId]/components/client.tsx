@@ -10,6 +10,7 @@ import { ChatHeader } from "@/components/chat-header";
 import { ChatMessages } from "@/components/chat-messages";
 import { ChatMessageProps } from "@/components/chat-message";
 import prismadb from "@/lib/prismadb";
+import { History } from "@/scripts/aibitat";
 
 interface ChatClientProps {
   companion: Companion & {
@@ -29,13 +30,15 @@ export const ChatClient = ({
   const router = useRouter();
   // const [messages, setMessages] = useState<ChatMessageProps[]>(companion.messages);
 
-  const [companionChate, setCompanionChat] = useState<Companion & { messages: Message[]} | null>(null);
+  const [companionChate, setCompanionChat] = useState<{history: History; companion: Companion} | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        await fetch(`/api/chat/multi-agent/${companion.id}`, {
-          method: "PUT",
+        await fetch(`/api/chat/multi-agent/${companion.id}/setup`, {
+          method: "POST",
+          credentials: "same-origin",
+          mode: "same-origin",
         });
       } catch (err) {
         console.error(err);
@@ -48,7 +51,8 @@ export const ChatClient = ({
       try {
         const response = await fetch(`/api/chat/multi-agent/${companion.id}`);
         const result = await response.json();
-        setCompanionChat(result as Companion & { messages: Message[]});
+        console.log('result', result)
+        setCompanionChat(result as {history: History; companion: Companion});
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -59,7 +63,7 @@ export const ChatClient = ({
     return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, [companion.id]);
 
-  console.log('function', companionChate?.functionCalling)
+  console.log('function', companionChate?.companion?.functionCalling)
   
   const {
     completion,
@@ -102,7 +106,7 @@ export const ChatClient = ({
       <ChatMessages
         companion={companion}
         isLoading={isLoading}
-        messages={companionChate?.messages ?? []}
+        messages={companionChate?.history ?? []}
       />
       <ChatForm 
         isLoading={isLoading} 

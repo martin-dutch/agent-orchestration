@@ -15,7 +15,7 @@ const ASSISTANT_MODEL = "gpt-4-1106-preview";
 const ASSISTANT_DESCRIPTION =
   "A friendly assistant to help you with your queries.";
 
-const aibitat = new AIbitat()
+export const aibitat = new AIbitat()
   .use(agents({ dbClient: prismadb }))
   .agent("client", {
     interrupt: "ALWAYS",
@@ -45,77 +45,13 @@ export async function GET(
   const companion = await prismadb.companion.findUnique({
     where: {
       id: params.chatId,
-    },
-    include: {
-      messages: {
-        orderBy: {
-          createdAt: "asc",
-        },
-        where: {
-          userId: user.id,
-        },
-      },
-      _count: {
-        select: {
-          messages: true,
-        },
-      },
-    },
-  });
-
-  return new NextResponse(JSON.stringify(companion));
-}
-
-export async function PUT(
-  request: Request,
-  { params }: { params: { chatId: string } }
-) {
-  const user = await currentUser();
-  const chatId = params.chatId;
-
-  console.log('DOING THE PUT FUNCTION')
-
-  if (!user || !user.id) {
-    return new NextResponse("Unauthorized", { status: 401 });
-  }
-
-  aibitat.onInterrupt((chat) => {});
-
-  aibitat.onFunction(async (func) => {
-    console.log('CALLING FUNCITON', func)
-    await prismadb.companion.update({
-      where: {
-        id: params.chatId
-      },
-      data: {
-        functionCalling: func
-      }
-    });
-  })
-
-
-  aibitat.onMessage(async (chat) => {
-    console.log('onMessage', chat)
-    if(chat.from !== 'client') {
-      console.log('CLIENT SENDING')
-      await prismadb.companion.update({
-        where: {
-          id: params.chatId,
-        },
-        data: {
-          messages: {
-            create: {
-              content: chat.content ?? "",
-              role: "system",
-              agentName: chat.from,
-              userId: user.id,
-            },
-          },
-        },
-      });
     }
   });
-  return NextResponse.json({ success: true });
+
+  console.log('history', aibitat.chats)
+  console.log('companion', companion)
+
+  return new NextResponse(JSON.stringify({history: aibitat.chats, companion: companion }));
 }
 
 export async function POST(

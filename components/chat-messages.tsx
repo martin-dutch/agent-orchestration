@@ -4,9 +4,10 @@ import { ElementRef, useEffect, useRef, useState } from "react";
 import { Companion } from "@prisma/client";
 
 import { ChatMessage, ChatMessageProps } from "@/components/chat-message";
+import { History } from "@/scripts/aibitat";
 
 interface ChatMessagesProps {
-  messages: ChatMessageProps[];
+  messages: History;
   isLoading: boolean;
   companion: Companion
 }
@@ -50,8 +51,8 @@ export const ChatMessages = ({
           key={index}
           src={companion.src}
           content={message.content}
-          role={message.role}
-          agentName={message.agentName}
+          role={message.from=== 'client' ? 'user' : 'system'}
+          agentName={message.from}
         />
       ))}
       {isLoading && (

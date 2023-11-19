@@ -94,7 +94,7 @@ type Prettify<T> = {
 /**
  * A chat message that is saved in the history.
  */
-type Chat = Omit<Message, "content"> & {
+export type Chat = Omit<Message, "content"> & {
   content?: string;
   state: "success" | "interrupt" | "error";
 };
@@ -102,7 +102,7 @@ type Chat = Omit<Message, "content"> & {
 /**
  * Chat history.
  */
-type History = Array<Chat>;
+export type History = Array<Chat>;
 
 /**
  * AIbitat props.

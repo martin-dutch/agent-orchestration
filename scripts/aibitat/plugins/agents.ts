@@ -49,6 +49,7 @@ function createAgentForUrl(aibitat: AIbitat<any>): void {
 
       const name ='agent-' + new URL(url).hostname;
       const content = await scrape(url);
+      console.debug(content);
 
       aibitat.agent(name, {
         role: 'You are a human assistant. Here is your specialist data:' + content + '.',
