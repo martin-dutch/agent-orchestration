@@ -6,11 +6,13 @@ import { MemoryManager } from "@/lib/memory";
 import prismadb from "@/lib/prismadb";
 import AIbitat from "@/scripts/aibitat";
 import { agents } from "@/scripts/aibitat/plugins/agents";
+import { youCom } from "@/scripts/aibitat/plugins/you-com";
 
 dotenv.config({ path: `.env` });
 
 export const aibitat = new AIbitat()
   .use(agents({ dbClient: prismadb }))
+  .use(youCom({}))
   .agent("client", {
     interrupt: "ALWAYS",
     role: `
@@ -23,7 +25,13 @@ export const aibitat = new AIbitat()
     Your job is to create and manage agents.`,
     functions: ["list-running-agents", "create-agent-for-url"],
   })
-  .channel("broadcast", ["client", "agent-manager"]);
+  .agent("you.com-search", {
+    role: `
+    You are a search assistant powered by you.com.
+    Your job is to find relevant websites to turn into agents.`,
+    functions: ["search-for-websites"],
+  })
+  .channel("broadcast", ["client", "agent-manager", "you.com-search"]);
 
 export async function GET(
   request: Request,
