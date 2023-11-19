@@ -55,7 +55,7 @@ export const ChatMessage = ({
           : content
         }
         {
-          functionCalling && (
+          isLoading && functionCalling && (
             <div className="flex">
             <BeatLoader color={theme === "light" ? "black" : "white"} size={5} /> 
             <h4>{functionCalling}</h4>

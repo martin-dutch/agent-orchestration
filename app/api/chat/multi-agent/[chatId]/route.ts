@@ -42,16 +42,10 @@ export async function GET(
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const companion = await prismadb.companion.findUnique({
-    where: {
-      id: params.chatId,
-    }
-  });
+  // console.log('history', aibitat.chats)
+  console.log(' aibitat.functionCalling', aibitat.functionCalling)
 
-  console.log('history', aibitat.chats)
-  console.log('companion', companion)
-
-  return new NextResponse(JSON.stringify({history: aibitat.chats, companion: companion }));
+  return new NextResponse(JSON.stringify({history: aibitat.chats, functionCalling: aibitat.functionCalling }));
 }
 
 export async function POST(

@@ -140,6 +140,7 @@ export class AIbitat<T extends Provider> {
   private defaultInterrupt;
   private maxRounds;
   private _chats;
+  private _functionCalling: string | undefined;
 
   public agents = new Map<string, AgentConfig<any>>();
   public channels = new Map<
@@ -171,6 +172,10 @@ export class AIbitat<T extends Provider> {
    */
   get chats() {
     return this._chats;
+  }
+
+  get functionCalling() {
+    return this._functionCalling;
   }
 
   /**
@@ -732,10 +737,12 @@ ${this.getHistory({ to: route.to })
         );
       }
 
+      this._functionCalling = fn.name;
       console.log('EMITTING FUNCTION', fn.name)
       this.emitter.emit("function", fn.name, this);
       // Execute the function and return the result to the provider
       const result = await fn.handler(args);
+      this._functionCalling = undefined;
       return await this.handleExecution(
         provider,
         [

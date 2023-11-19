@@ -30,7 +30,7 @@ export const ChatClient = ({
   const router = useRouter();
   // const [messages, setMessages] = useState<ChatMessageProps[]>(companion.messages);
 
-  const [companionChate, setCompanionChat] = useState<{history: History; companion: Companion} | null>(null);
+  const [companionChate, setCompanionChat] = useState<{history: History; functionCalling: string | undefined} | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -52,7 +52,7 @@ export const ChatClient = ({
         const response = await fetch(`/api/chat/multi-agent/${companion.id}`);
         const result = await response.json();
         console.log('result', result)
-        setCompanionChat(result as {history: History; companion: Companion});
+        setCompanionChat(result as {history: History; functionCalling:string | undefined});
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -63,7 +63,7 @@ export const ChatClient = ({
     return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, [companion.id]);
 
-  console.log('function', companionChate?.companion?.functionCalling)
+  console.log('function', companionChate?.functionCalling)
   
   const {
     completion,
@@ -104,7 +104,7 @@ export const ChatClient = ({
     <div className="flex flex-col h-full p-4 space-y-2">
       <ChatHeader companion={companion} />
       <ChatMessages
-        companion={companion}
+        functionCalling={companionChate?.functionCalling}
         isLoading={isLoading}
         messages={companionChate?.history ?? []}
       />

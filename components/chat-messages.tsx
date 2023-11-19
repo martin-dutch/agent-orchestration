@@ -9,13 +9,13 @@ import { History } from "@/scripts/aibitat";
 interface ChatMessagesProps {
   messages: History;
   isLoading: boolean;
-  companion: Companion
+  functionCalling: string | undefined
 }
 
 export const ChatMessages = ({
   messages = [],
   isLoading,
-  companion,
+  functionCalling,
 }: ChatMessagesProps) => {
   const scrollRef = useRef<ElementRef<"div">>(null);
 
@@ -40,16 +40,16 @@ export const ChatMessages = ({
     <div className="flex-1 overflow-y-auto pr-4">
       <ChatMessage
         isLoading={fakeLoading}
-        src={companion.src}
+        // src={companion.src}
         role="system"
         agentName={'system'}
-        content={`Hello, I am ${companion.name}, ${companion.description}`}
+        content={`Hello, I am ${'your assistant'}, ${'and im here to help you orchestrate your swarm or creat new agents for you'}`}
       />
       {messages.map((message, index) => (
         <ChatMessage
-          functionCalling={messages.length -1  === index  ? companion.functionCalling : ''}
+          functionCalling={messages.length -1  === index  && message.from !== 'client' ? functionCalling : ''}
           key={index}
-          src={companion.src}
+          // src={companion.src}
           content={message.content}
           role={message.from=== 'client' ? 'user' : 'system'}
           agentName={message.from}
@@ -57,9 +57,17 @@ export const ChatMessages = ({
       ))}
       {isLoading && (
         <ChatMessage
-          src={companion.src}
+          // src={companion.src}
           role="system"
           isLoading
+        />
+      )}
+      {functionCalling != null && (
+        <ChatMessage
+          // src={companion.src}
+          role="system"
+          isLoading
+          functionCalling={functionCalling}
         />
       )}
       <div ref={scrollRef} />
