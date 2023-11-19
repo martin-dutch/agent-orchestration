@@ -30,15 +30,15 @@ export const aibitat = new AIbitat()
     role: `
     You are a search assistant powered by you.com.
     Your job is to find relevant websites to turn into agents or find`,
-    functions: ["search-for-websites", "search-for-facts"],
+    functions: ["search"],
   })
   .agent("fact-checker", {
     role: `
     You are a fact checker assistant powered by you.com.
     Your job is to determine whether previous statements are true or false.
-    To search for information only online use the function "search-for-facts" by @you.com-search.
-    You only respond to messages from other agents or when asked directly.`,
-    functions: ["search-for-facts"],
+    To search for information online use the "search" function.
+    You only respond to messages from other agents or when asked directly to search or fact-check directly.`,
+    functions: ["search"],
   })
   .channel("broadcast", ["client", "agent-manager", "you.com-search", "fact-checker"]);
 
