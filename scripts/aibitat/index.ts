@@ -42,6 +42,8 @@ export type AgentConfig<T extends Provider = "openai"> = ProviderConfig<T> & {
   /** The role this agent will play in the conversation */
   role?: string;
 
+  data?: string;
+
   /**
    * When the chat should be interrupted for feedbacks.
    * @default 'NEVER'
@@ -685,6 +687,12 @@ ${this.getHistory({ to: route.to })
     const messages = [
       {
         content: fromConfig.role,
+        role: "system" as const,
+      },
+      {
+        content: `
+        Your data:
+        ${fromConfig.data}`,
         role: "system" as const,
       },
       // get the history of chats between the two nodes

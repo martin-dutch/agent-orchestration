@@ -66,16 +66,14 @@ export async function scrape(url: string) {
     url: url,
   };
 
-  const data_json = JSON.stringify(data);
-  console.log(
-    `https://chrome.browserless.io/content?token=${process.env.BROWSERLESS_TOKEN}`
-  );
-  const response = await fetch(
-    `https://chrome.browserless.io/content?token=${process.env.BROWSERLESS_TOKEN}`,
+  const apiUrl = new URL("https://chrome.browserless.io/content");
+  apiUrl.searchParams.set("token", process.env.BROWSERLESS_TOKEN!);
+
+  const response = await fetch(apiUrl,
     {
       method: "POST",
       headers: headers,
-      body: data_json,
+      body: JSON.stringify(data),
     }
   );
 
