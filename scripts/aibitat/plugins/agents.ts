@@ -11,7 +11,7 @@ function listRunningAgents(aibitat: AIbitat<any>): void {
   aibitat.function({
     name: "list-running-agents",
     description:
-      "List all running agents. An agent is a helpful assistant that can do specific tasks.",
+      "List all running agents. An agent is a helpful assistant that can do specific tasks. Returns a list of running agents formatted as JSON",
     parameters: {
       $schema: "http://json-schema.org/draft-07/schema#",
       type: "object",
@@ -22,7 +22,7 @@ function listRunningAgents(aibitat: AIbitat<any>): void {
       const agents = Array.from(aibitat.agents.values());
       console.debug(agents);
 
-      return `${agents.map((agent, index)=>  `AGENT${index}: ${JSON.stringify(agent)}`)}`;
+      return JSON.stringify(agents, null, 2);
     },
   })
 }
@@ -47,12 +47,15 @@ function createAgentForUrl(aibitat: AIbitat<any>): void {
     },
     async handler({url}: {url: string}) {
 
-      const name ='agent-' + new URL(url).hostname;
+      const name = new URL(url).hostname;
       const content = await scrape(url);
       console.debug(content);
 
       aibitat.agent(name, {
-        role: 'You are a human assistant. Here is your specialist data:' + content + '.',
+        role: `
+        You are a specialist on the website of ${url}. 
+        Here is your specialist data:
+        ${content}`,
       });
       aibitat.addToChannel('broadcast', [name]);
       return "Agent " + name + " has joined the chat."
