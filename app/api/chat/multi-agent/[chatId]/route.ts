@@ -27,7 +27,7 @@ const aibitat = new AIbitat()
     role: `
     You are a human assistant. 
     Reply "TERMINATE" when there is a correct answer or there's no answer to the question.`,
-    functions: ["list-running-agents"],
+    functions: ["list-running-agents", "create-agent-for-url"],
   })
   .channel("broadcast", ["client", "agents"]);
 
@@ -36,9 +36,7 @@ export async function GET(
   { params }: { params: { chatId: string } }
 ) {
   const user = await currentUser();
-  // console.log('user', user)
   const chatId = params.chatId;
-  // console.log('chatId', chatId)
 
   if (!user || !user.firstName || !user.id) {
     return new NextResponse("Unauthorized", { status: 401 });
@@ -46,12 +44,12 @@ export async function GET(
 
   const companion = await prismadb.companion.findUnique({
     where: {
-      id: params.chatId
+      id: params.chatId,
     },
     include: {
       messages: {
         orderBy: {
-          createdAt: "asc"
+          createdAt: "asc",
         },
         where: {
           userId: user.id,
@@ -60,13 +58,64 @@ export async function GET(
       _count: {
         select: {
           messages: true,
-        }
-      }
-    }
+        },
+      },
+    },
   });
 
+  return new NextResponse(JSON.stringify(companion));
+}
 
-  return new NextResponse(JSON.stringify(companion))
+export async function PUT(
+  request: Request,
+  { params }: { params: { chatId: string } }
+) {
+  const user = await currentUser();
+  const chatId = params.chatId;
+
+  console.log('DOING THE PUT FUNCTION')
+
+  if (!user || !user.id) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  aibitat.onInterrupt((chat) => {});
+
+  aibitat.onFunction(async (func) => {
+    console.log('CALLING FUNCITON', func)
+    await prismadb.companion.update({
+      where: {
+        id: params.chatId
+      },
+      data: {
+        functionCalling: func
+      }
+    });
+  })
+
+
+  aibitat.onMessage(async (chat) => {
+    console.log('onMessage', chat)
+    if(chat.from !== 'client') {
+      console.log('CLIENT SENDING')
+      await prismadb.companion.update({
+        where: {
+          id: params.chatId,
+        },
+        data: {
+          messages: {
+            create: {
+              content: chat.content ?? "",
+              role: "system",
+              agentName: chat.from,
+              userId: user.id,
+            },
+          },
+        },
+      });
+    }
+  });
+  return NextResponse.json({ success: true });
 }
 
 export async function POST(
@@ -75,13 +124,9 @@ export async function POST(
 ) {
   try {
     const { prompt } = await request.json();
-    console.debug("prompt", prompt);
     const user = await currentUser();
-    console.debug("user", user);
-    const chatId = params.chatId;
-    console.debug("chatId", chatId);
 
-    if (!user || !user.firstName || !user.id) {
+    if (!user || !user.id) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
@@ -187,16 +232,6 @@ export async function POST(
       to: "broadcast",
       content: prompt,
     });
-
-    // console.log(aibitat.chats)
-    
-
-    aibitat.chats.forEach((chat) => {
-      s.push(chat.content);
-    });
-    s.push(null);
-
-    return new StreamingTextResponse(s);
   } catch (error) {
     console.log(error);
     return new NextResponse("Internal Error", { status: 500 });

@@ -32,6 +32,18 @@ export const ChatClient = ({
   const [companionChate, setCompanionChat] = useState<Companion & { messages: Message[]} | null>(null);
 
   useEffect(() => {
+    (async () => {
+      try {
+        await fetch(`/api/chat/multi-agent/${companion.id}`, {
+          method: "PUT",
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  }, [companion.id])
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch(`/api/chat/multi-agent/${companion.id}`);
@@ -45,7 +57,7 @@ export const ChatClient = ({
     const intervalId = setInterval(fetchData, 1000); // Polls every second
 
     return () => clearInterval(intervalId); // Cleanup interval on component unmount
-  }, []);
+  }, [companion.id]);
 
   console.log('function', companionChate?.functionCalling)
   
