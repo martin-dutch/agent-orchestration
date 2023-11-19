@@ -19,10 +19,15 @@ function listRunningAgents(aibitat: AIbitat<any>): void {
       additionalProperties: false,
     },
     async handler() {
-      const agents = Array.from(aibitat.agents.values());
-      console.debug(agents);
+      const agents = Array.from(aibitat.agents.entries());
+      const res = agents.map(([name, agent]) => ({
+        name,
+        role: agent.role,
+        functions: agent.functions,
+      }))
+      console.debug(res);
 
-      return JSON.stringify(agents, null, 2);
+      return JSON.stringify(res, null, 2);
     },
   })
 }

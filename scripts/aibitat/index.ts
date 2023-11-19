@@ -623,8 +623,6 @@ Read the following conversation.
 CHAT HISTORY
 ${history.slice(Math.max(history.length - 3, 0), Math.max(history.length -1, 0)).map((c) => `@${c.from}: ${c.content}`).join("\n")}
 
-If there is something that might not be factually true, choose the you.com fact checker agent agent
-
 Only return the role.
 `,
       },

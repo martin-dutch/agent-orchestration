@@ -28,16 +28,16 @@ export const aibitat = new AIbitat()
   .agent("you.com-search", {
     role: `
     You are a search assistant powered by you.com.
-    Your job is to find relevant websites to turn into agents.`,
-    functions: ["search-for-websites"],
+    Your job is to find relevant websites to turn into agents or find`,
+    functions: ["search-for-websites", "search-for-facts"],
   })
-  .agent("you.com-fact-checker", {
+  .agent("fact-checker", {
     role: `
     You are a fact checker assistant powered by you.com.
-    Your job is to use information you find on the internet to make sure the last message is factually accurate`,
-    functions: ["search-for-facts"],
+    Your job is to use information given to you by search-for-facts to find whether previous statements are true or false.
+    You only respond to messages from other agents or when asked directly.`,
   })
-  .channel("broadcast", ["client", "agent-manager", "you.com-search", "you.com-fact-checker"]);
+  .channel("broadcast", ["client", "agent-manager", "you.com-search", "fact-checker"]);
 
 export async function GET(
   request: Request,
@@ -49,9 +49,6 @@ export async function GET(
   if (!user || !user.firstName || !user.id) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
-
-  // console.log('history', aibitat.chats)
-  console.log(' aibitat.functionCalling', aibitat.functionCalling)
 
   return new NextResponse(JSON.stringify({history: aibitat.chats.filter((chat) => chat.content != null), functionCalling: aibitat.functionCalling }));
 }
