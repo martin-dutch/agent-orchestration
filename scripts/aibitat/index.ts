@@ -614,14 +614,14 @@ export class AIbitat<T extends Provider> {
       {
         role: "user" as const,
         content: `You are in a role play game. The following roles are available:
-${availableNodes.reverse()
+${availableNodes
   .map((node) => `@${node}: ${this.getAgentConfig(node).role}`)
   .join("\n")}.
 
 Read the following conversation.
 
 CHAT HISTORY
-${history.slice(Math.max(history.length - 3, 0), Math.max(history.length -1, 0)).map((c) => `@${c.from}: ${c.content}`).join("\n")}
+${history.slice(-20).map((c) => `@${c.from}: ${c.content}`).join("\n")}
 
 Only return the role.
 `,
