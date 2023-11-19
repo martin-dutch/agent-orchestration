@@ -64,18 +64,21 @@ export async function scrape(url: string) {
 
   const data = {
     url: url,
+    elements: [
+      {
+        selector: "body",
+      },
+    ],
   };
 
-  const apiUrl = new URL("https://chrome.browserless.io/content");
+  const apiUrl = new URL("https://chrome.browserless.io/scrape");
   apiUrl.searchParams.set("token", process.env.BROWSERLESS_TOKEN!);
 
-  const response = await fetch(apiUrl,
-    {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify(data),
-    }
-  );
+  const response = await fetch(apiUrl, {
+    method: "POST",
+    headers: headers,
+    body: JSON.stringify(data),
+  });
 
   if (response.status !== 200) {
     console.log("🔥 ~ error", data);
@@ -83,8 +86,10 @@ export async function scrape(url: string) {
     return `HTTP request failed with status code "${response.status}: ${response.statusText}"`;
   }
 
-  const html = await response.text();
-  const text = NodeHtmlMarkdown.translate(html);
+  const json = await response.json();
+  console.log(json);
+  
+  const text = json.data[0].results[0].text;
 
   console.log("🔥 ~ text", text);
   if (text.length <= 8000) {

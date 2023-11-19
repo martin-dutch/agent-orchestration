@@ -32,6 +32,8 @@ function search(aibitat: AIbitat<any>): void {
       url.searchParams.set("query", query);
       url.searchParams.set("num_web_results", size.toString());
 
+      console.debug("Searching for websites with query:", query);
+
       const res = await fetch(url, {
         headers: {
           "X-API-Key": process.env.YOU_API_KEY!,
