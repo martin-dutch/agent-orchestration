@@ -38,6 +38,7 @@ export const aibitat = new AIbitat()
     Your job is to determine whether previous statements are true or false.
     To search for information only online use the function "search-for-facts" by @you.com-search.
     You only respond to messages from other agents or when asked directly.`,
+    functions: ["search-for-facts"],
   })
   .channel("broadcast", ["client", "agent-manager", "you.com-search", "fact-checker"]);
 
