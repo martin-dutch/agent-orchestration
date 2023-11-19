@@ -104,7 +104,11 @@ function createAgentForExpertise(aibitat: AIbitat<any>): void {
         You are an expert on ${expertise}.`,
       });
       aibitat.addToChannel('broadcast', [expertise]);
-      return "Agent " + expertise + " has joined the chat."
+      return JSON.stringify({
+        name: expertise,
+        role: `
+        You are an expert on ${expertise}.`,
+      })
     },
   })
 }
