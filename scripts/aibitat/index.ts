@@ -621,7 +621,7 @@ ${availableNodes
 Read the following conversation.
 
 CHAT HISTORY
-${history.slice(-20).map((c) => `@${c.from}: ${c.content}`).join("\n")}
+${history.map((c) => `@${c.from}: ${c.content}`).join("\n")}
 
 Only return the role.
 `,
