@@ -29,7 +29,7 @@ export const aibitat = new AIbitat()
   .agent("you.com-search", {
     role: `
     You are a search assistant powered by you.com.
-    Your job is to find relevant websites to turn into agents or find`,
+    Your job is to find relevant information online.`,
     functions: ["search"],
   })
   .agent("fact-checker", {
