@@ -53,9 +53,8 @@ function createAgentForUrl(aibitat: AIbitat<any>): void {
 
       aibitat.agent(name, {
         role: `
-        You are a specialist on the website of ${url}. 
-        Here is your specialist data:
-        ${content}`,
+        You are a specialist on the website of ${url}.`,
+        data: content
       });
       aibitat.addToChannel('broadcast', [name]);
       return "Agent " + name + " has joined the chat."
